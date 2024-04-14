@@ -1,0 +1,29 @@
+--- 
+title: "Análisis de tráfico en las redes telecomunicaciones móviles LTE en los municipios de Cundinamarca"
+author: "Paula Gonzalez , Cristian Ibañez , Wilson Balaguera"
+date: "`r Sys.Date()`"
+site: bookdown::bookdown_site
+output: bookdown::gitbook
+documentclass: book
+bibliography: [book.bib, packages.bib]
+biblio-style: apalike
+link-citations: yes
+github-repo: rstudio/bookdown-demo
+description: "This is a minimal example of using the bookdown package to write a book. The output format for this example is bookdown::gitbook."
+
+---
+
+
+# Introducción
+![](banner1.jpg){witdh=80%}
+
+La importancia de este pronóstico es debido a la creciente necesidad de mejorar los recursos de infraestructura en las redes de telecomunicaciones móviles puntualmente en las de tecnologia LTE, debido al constante aumento de la demanda de datos móviles. El lugar del estudio son los municipios de Cundinamarca, el cual presenta reto por su dispersión en ubicaciones urbanas y rurales , y además presenta unos cambios drásticos en algunas fechas festivas cuando se presentan las fiestas y ferias de sus respectivos municipios
+
+
+
+```{r include=FALSE}
+# automatically create a bib database for R packages
+knitr::write_bib(c(
+  .packages(), 'bookdown', 'knitr', 'rmarkdown'
+), 'packages.bib')
+```

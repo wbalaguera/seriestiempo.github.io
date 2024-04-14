@@ -1,0 +1,19 @@
+# Importancia 
+
+**Importancia del Análisis**
+
+**Optimización de Red:**
+
+**Predicción de tráfico:** Entender la tendencia de tráfico y patrones para poder prever los cambios drásticos de tráfico, permitiendo al operador hacer cambios de optimización o implementación para mejorar la capacidad de la red.
+
+1. **Optimización de Recursos:**
+    - **Predicción de Carga de Tráfico:** Entender las tendencias y patrones en el uso de las redes puede ayudar a prever picos de demanda y periodos de baja utilización, permitiendo a los operadores ajustar dinámicamente la capacidad de la red.
+    - **Planificación:** Las predicciones de tráfico ayudan a tomar decisiones sobre dónde realizar inversión de infraestructura.
+    - **Planificación de Infraestructura:** Las predicciones precisas ayudan a decidir dónde y cuándo expandir la infraestructura existente o dónde desplegar nueva infraestructura.
+2. **Mejora de la Experiencia del Usuario:**
+    - **Calidad del Servicio:** Al tener una visión del tráfico es fácil prever escenarios de congestión en temporadas críticas, por lo cual podríamos garantizar una mejor experiencia hacia el usuario.
+3. **Decisiones Estratégicas para Cobertura:**
+    - **Objetivos de Cobertura:** Con la información del tráfico de red sobre las áreas urbanas y rurales se pueden enfocar esfuerzos en ampliar la cobertura alineados con el plan de expansión de la compañía.
+
+
+

@@ -1,0 +1,11 @@
+# Fuentes
+
+
+Las fuentes de información serán anonimizadas en Python por me dio de la biblioteca “UUID” el cual lo relaciona con un identificador único, y luego se puede relación con el nombre original para uso interno de la operadora 
+
+Las fuentes de información son las siguientes:
+
+**Nokia:**  Se tiene  la información del tráfico ( Payload) y  velocidad (Throughput) por cada estación base con periodicidad diaria
+
+**Dane:** Información de municipios de la cantidad de población , los municipios selecionados fueron los categorizados por el dane como de "poblacion media"
+
