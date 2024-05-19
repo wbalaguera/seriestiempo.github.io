@@ -1,23 +1,245 @@
-# Pasos siguientes
+# Preparación y análisis
 
-We describe our methods in this chapter.
+## Cargue de datos
 
-Math can be added in body using usual syntax like this 
+Importamos la información de tráfico de una Estación base del municipio de Cundinamarca, esta información ya viene anonimizada en sus nombres por motivos de confidiencialidad de la empresa
 
-## math example
+Realizamos el cargue de los datos csv
 
-$p$ is unknown but expected to be around 1/3. Standard error will be approximated
+```{r}
+data_sitio <- read.csv("data_sitio.csv", sep = ";")
+```
 
-$$
-SE = \sqrt(\frac{p(1-p)}{n}) \approx \sqrt{\frac{1/3 (1 - 1/3)} {300}} = 0.027
-$$
+### Formato de fechas
 
-You can also use math in footnotes like this^[where we mention $p = \frac{a}{b}$].
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(lubridate)
+library(zoo)
+library(TTR) # libreria promedios móviles
+library(forecast) #  libreria estacionalidad y rezagos
+library(tseries)
 
-We will approximate standard error to 0.027[^longnote]
+```
 
-[^longnote]: $p$ is unknown but expected to be around 1/3. Standard error will be approximated
 
-    $$
-    SE = \sqrt(\frac{p(1-p)}{n}) \approx \sqrt{\frac{1/3 (1 - 1/3)} {300}} = 0.027
-    $$
+Para el manejo de datos en la columna "M_FECHA_DIA" damos formato con  "as.Date" y lo ordenamos
+
+```{r}
+data_sitio$M_FECHA_DIA <- as.Date(data_sitio$M_FECHA_DIA)
+data_sitio <- data_sitio[order(data_sitio$M_FECHA_DIA), ]
+```
+
+Buscamos el mínimo día y la cantidad de días 
+```{r}
+
+fecha_inicio <- min(data_sitio$M_FECHA_DIA)
+n_dias <- as.numeric(max(data_sitio$M_FECHA_DIA) - fecha_inicio) + 1
+fecha_max <- max(data_sitio$M_FECHA_DIA)
+fecha_inicio
+fecha_max
+```
+
+Verificamos el día mínimo y el máximo de nuestro  dataset
+```{r}
+fecha_inicio
+fecha_max
+```
+
+
+Verificamos si la serie no tiene datos faltantes entre días para poder usar la funcion "ts"
+```{r}
+fechas_completas <- seq(fecha_inicio, by = "day", length.out = n_dias)
+if(length(fechas_completas) != nrow(data_sitio)) {
+  warning("Hay fechas faltantes en los datos. Deberás interpolar o manejar los valores faltantes antes de continuar.")
+}
+```
+
+
+### Selección de campos
+
+Seleccionamos  las columnas de interés  de fecha ("M_FECHA_DIA") y tráfico en LTE () "PAYLOAD_4G")
+
+```{r}
+
+selected_columns <- data_sitio[, c("M_FECHA_DIA", "PAYLOAD_4G")]
+head(selected_columns)
+```
+
+
+
+
+
+Creamos la serie de tiempo con la función  "ts" donde le indicamos la fecha de inicio con una frecuencia diaria
+```{r}
+
+serie_tiempo <- ts(
+    data_sitio$PAYLOAD_4G, 
+    start=c(as.numeric(format(fecha_inicio, "%Y")), as.numeric(format(fecha_inicio, "%j"))),
+    frequency=365
+    )
+
+```
+
+Verificamos el tipo de datos de la serie de tiempo 
+```{r}
+class(serie_tiempo)
+```
+
+
+Validación de fecha mínima y máxima de la serie
+
+```{r}
+start_time <- start(serie_tiempo)
+end_time <- end(serie_tiempo)
+frequency <- frequency(serie_tiempo)
+min_date <- as.Date(paste(start_time[1], start_time[2], sep="-"), "%Y-%j")
+max_date <- as.Date(paste(end_time[1], (end_time[2]-1) / frequency * 365, sep="-"), "%Y-%j")
+
+min_date
+max_date
+
+```
+
+## Análisis Series de tiempo
+
+### Análisis descriptivo
+
+Al visualizar la serie de tiempo se puede visualizar  la tendencia del tráfico con una pendiente positiva, al tener una población en constante crecimiento es normal que aumente la demanda de datos móviles en redes LTE 
+```{r 3_trafico}
+plot(serie_tiempo)
+```
+
+**Tráfico por Año**
+El tráfico año por año va incrementando al detallarlo mes por mes se denota el aumento
+
+
+```{r 3_1_trafico_año}
+seasonplot(serie_tiempo,col=rainbow(4),year.labels = TRUE)
+```
+
+
+
+El tráfico al verlo en una gráfica circular se  puede ver como  crece año tras año  , sin importar al mes , cabe destacar los valores de alto tráfico 
+
+
+
+```{r 3_1a_radar}
+
+# Cargar las bibliotecas necesarias
+library(forecast)
+library(ggplot2)
+
+# Asegurar que serie_tiempo es una serie de tiempo con la frecuencia correcta
+# (opcional: ajustar la serie a una frecuencia de 365 días por año)
+serie_tiempo <- ts(serie_tiempo, frequency = 365)
+
+# Usar ggseasonplot para visualizar la serie de tiempo
+p <- ggseasonplot(serie_tiempo, polar = TRUE, year.labels = TRUE, year.labels.left = TRUE) +
+  labs(y = "Valores", title = "Tráfico LTE por Mes") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Ajustar los textos del eje x si necesario
+
+# Imprimir el plot
+print(p)
+
+
+```
+
+
+
+
+**Box Plot** Podemos apreciar una tendencia creciente  mirando el diagrama de cajas , la única diferencia es en el año 2024 ya que tiene 2  meses
+
+```{r}
+library(ggplot2)
+time_index <- time(serie_tiempo)
+years <- as.integer(floor(time_index))
+values <- as.numeric(serie_tiempo)
+serie_df <- data.frame(Year = as.factor(years), Value = values)
+ggplot(serie_df, aes(x = Year, y = Value)) + geom_boxplot()
+
+
+```
+
+**Histograma* No se puede observar  ningún tipo de distribución en el gráfico.
+
+
+```{r}
+
+hist(serie_tiempo, breaks = 30, main = "Histograma de serie_tiempo", xlab = "Valores")
+
+
+```
+**Densidad* Podemos ver un gráfico parecido al histograma pero suavizado.
+
+```{r}
+
+plot(density(serie_tiempo), main = "Densidad de serie_tiempo", xlab = "Valores", ylab = "Densidad")
+
+
+```
+**Gráfico de dispersión con Lags(Autocorrelación)**
+
+Aca podemos observar la autocorrelación entre los datos observados actuales versus un  dato anterior(lag=1), solo hay unos atípicos en la parte superior y en el extremo derecho.
+
+```{r}
+lag <- 1  # Cambia esto para diferentes lags
+plot(serie_tiempo[-(1:lag)], serie_tiempo[-((length(serie_tiempo)-(lag-1)):length(serie_tiempo))],
+     xlab = paste("Lag", lag), ylab = "serie_tiempo")
+
+```
+
+
+ 
+### Análisis de Promedio Móvil
+
+Con la función "rollmean" suavizamos la serie usando una ventana de 7 días, en la gráfica 
+podemos observar como el promedio Móvil representado por la línea roja ,el cual suaviza los outlier que salían en la serie original representado con la linea negra
+
+
+```{r}
+promedio_movil <- rollmean(serie_tiempo, 7, fill = NA)
+
+plot(serie_tiempo, main="Serie Temporal con Promedio Móvil", xlab="Fecha", ylab="PAYLOAD_4G")
+lines(promedio_movil, col="red")
+legend("topright", legend=c("Serie Original", "Promedio Móvil"), col=c("black", "red"), lty=1)
+
+```
+
+### Análisis de Rezagos
+
+En este análisis podemos observar como los valores pasados de una serie afectan sus valores futuros
+En la imagen podemos observar como todas las barras superan el umbral de líneas azules (+/-)1.96, lo que demuestra una alta autocorrelación en todos los rezagos. Esta autocorrelación demuestra que la serie no es aleatoria y puede ser una señal de estacionariedad o de tendencia
+
+
+```{r 3_2_acf}
+acf(serie_tiempo)
+
+```
+
+### Análisis de Estacionalidad
+
+Dentro la imagen podemos observar lo siguiente
+
+1. **Observed:**: Nos muestra la serie original , es decir la serie de tráfico LTE  sin modificaciones.
+    
+2. **Tred:** En la tendencia nos muestra la  eliminacion del ruido y estacionarie sin embargo se observan los  picos de tráfico al final.
+  
+3. **Seasonal:**: En la Estacionariedad podemos observar un patrón claro y repetitivo , lo cual indica  que existe estacionariedad en los datos del tráfico en esta de serie de tiempo.
+
+3. **Random**: Este gráfico muestra residuales o fluctuaciones que nos se pueden explicar , ya que puede ser atípicos o ruido, para estos casos particulares en tráfico hay que hacer investigaciones de las causas de estas anomalias.
+
+
+```{r 3_3_descomposicion}
+descomposicion <- decompose(serie_tiempo)
+
+plot(descomposicion)
+
+
+write.csv(serie_tiempo, "serie_tiempo.csv", row.names = FALSE)
+```
+
+
+
+
+
