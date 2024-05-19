@@ -1,7 +1,666 @@
-# Pasos siguientes
+---
+editor_options: 
+  markdown: 
+    wrap: 72
+---
 
-Some _significant_ applications are demonstrated in this chapter.
+# Análisis de Estacionariedad
 
-## Example one
+## Carga de Serie
 
-## Example two
+Importamos la serie de tiempo del tráfico LTE y verificamos su rango de
+fechas
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(lubridate)
+library(zoo)
+library(TTR) # libreria promedios móviles
+library(forecast) #  libreria estacionalidad y rezagos
+library(tseries)
+
+```
+
+```{r}
+datos <- read.csv("serie_tiempo.csv")
+```
+
+```{r}
+fecha_inicio <- as.Date("2021-01-01")
+serie_tiempo <- ts(datos$x, start = c(format(fecha_inicio, "%Y"), format(fecha_inicio, "%j")), frequency = 365)
+```
+
+Verificamos la fecha inicio y fecha fin
+
+```{r}
+start_time <- start(serie_tiempo)
+end_time <- end(serie_tiempo)
+frequency <- frequency(serie_tiempo)
+min_date <- as.Date(paste(start_time[1], start_time[2], sep="-"), "%Y-%j")
+max_date <- as.Date(paste(end_time[1], (end_time[2]-1) / frequency * 365, sep="-"), "%Y-%j")
+
+min_date
+max_date
+
+```
+
+## Análisis
+
+Dentro la imagen podemos observar lo siguiente
+
+1.  **Observed:**: Nos muestra la serie original , es decir la serie de
+    tráfico LTE sin modificaciones.
+
+2.  **Tred:** En la tendencia nos muestra la eliminacion del ruido y
+    estacionarie sin embargo se observan los picos de tráfico al final.
+
+3.  **Seasonal:**: En la Estacionariedad podemos observar un patrón
+    claro y repetitivo , lo cual indica que existe estacionariedad en
+    los datos del tráfico en esta de serie de tiempo.
+
+4.  **Random**: Este gráfico muestra residuales o fluctuaciones que nos
+    se pueden explicar , ya que puede ser atípicos o ruido, para estos
+    casos particulares en tráfico hay que hacer investigaciones de las
+    causas de estas anomalias.
+
+```{r 4_descomposicion}
+descomposicion <- decompose(serie_tiempo)
+plot(descomposicion)
+ 
+```
+
+## Diferenciacion y Logaritmos
+
+Para poder realizar un ARIMA es importante tener estacionariedad , por
+eso debemos convertirlo en estacionaria por medio de una transformación
+de logaritmos o diferencias
+
+### Logaritmos
+
+La función logaritmica es una función continua deja los mínimos y
+máximos bajo logaritmo, estabilizando la varianza .
+
+Para el caso de logaritmos usamos la función "log"
+
+```{r 4_1_log}
+serielog=log(serie_tiempo)
+plot(serielog)
+```
+
+Al ver la gráfica no podemos apreciar estacionariedad ya que se ven
+caidas y bajadas y su media es diferente de cero.
+
+Verificamos si es estacionaria por medio de la prueba de "Dickey-Fuller"
+con la libreria "adf"
+
+```{r 4_1_log_test}
+adf.test(serielog,alternative = "stationary")
+```
+
+El resultado de es p-value = 0.2829 al ser mayor a 0.05 se puede
+determinar que es una serie no estacionaria
+
+Con logaritmo no logramos conseguir Estacionariedad
+
+### Diferencias
+
+Antes de realizar las diferencias podemos ejecutar el comando "ndiffs"
+para saber cuantas diferencias necesitamos
+
+```{r 4_4_dif}
+ndiffs(serie_tiempo)
+```
+
+El resultado es "1" diferencia para convertir la serie en estacionaria
+
+```{r 4_5_dir_serie}
+seriedif=diff(serie_tiempo)
+plot(seriedif,lty="dashed",col="red",main="Serie de Tiempo de Tráfico LTE")
+```
+
+Al ver la gráfica podemos apreciar que los datos estan alrededor de la
+misma media , en este caso de "cero"
+
+Para verificar si es estacionaria lo hacemos por medio de la prueba de
+"Dickey-Fuller" con la libreria "adf"
+
+```{r 4_6 dif_test}
+adf.test(seriedif,alternative = "stationary")
+```
+
+El resultado de es p-value = 0.01 al ser menor a 0.05 se puede
+determinar que es una serie que si es estacionaria
+
+Podemos validar si necesitamos mas diferenciaciones con el comando
+"ndiffs"
+
+```{r 4_7_dif_ndiff}
+ndiffs(seriedif)
+```
+
+El resultado es cero por lo cuál no necesitamos más diferenciaciones
+
+**Análisis de autocorrelación**
+
+```{r 4_8_Autocorr}
+par(mfrow=c(2,2),mar=c(4,4,4,1)+.1)
+plot(serie_tiempo,ylab="Tráfico LTE")
+Acf(serie_tiempo,main="Serie No Estacionaria")
+plot(seriedif)
+acf(seriedif,main="Serie Estacionaria")
+
+```
+
+Podemos observar que el primer gráfico " no es estacionario" tiene una
+tendencia , la cual es verificada por la autocorrelación de la derecha .
+el cual supera el umbral de líneas azules (+/-)1.96
+
+En los gráficos inferiores se puede ver una media constante , varianza
+constante, y se puede ver en la gráfica de la derecha la comprobación de
+autocorrelacion donde se visualiza que no supera el umbral de (+/-)1.96
+
+## Método de Holt Winters
+
+Para hacer prediciones utilizando datos con tendencia y estacionalidad,
+recurrimos al método estacional de Holt-Winters . Este método se puede
+implementar con una estructura "Aditiva" o una estrucutra
+"multiplicativa"
+
+El modelo aditivo se utliza mejor cuando la tendencia estacional es la
+misma magnitud en todo el conjunto de datos, mientras que el modelo
+multiplicativo cuando la magnitud de la estacionalidad cambia a medida
+que aumenta o disminuye el tiempo el tiempo
+
+```{r hw plot}
+plot(serie_tiempo)
+```
+
+Al ver la gráfica al tener una periocidad diaria no es claro si usar el
+modelo aditivo o multiplicativo por lo cual evaluamos la
+homocedasticidad de los residuos .
+
+```{r}
+frequency(serie_tiempo)
+```
+
+**Modelo Aditivo**
+
+```{r hw_aditivo}
+modelo_aditivo <- decompose(serie_tiempo, type="additive")
+plot(modelo_aditivo)
+```
+
+**Modelo Multiplicativo**
+
+```{r hw_multi}
+# Descomposición Multiplicativa
+modelo_multiplicativo <- decompose(serie_tiempo, type="multiplicative")
+plot(modelo_multiplicativo)
+
+```
+
+Al revisar los dos modelos en la parte de **residuos** podemos ver que
+el multiplicativo es mas viable ya que parecen mas aleatorios y con
+menos patrones sistematicos que el modelo aditivo
+
+Para volver a verificar vamos a usa la descomposición STL (Seasonal and
+Trend decomposition using Loess) y un modelo ETS(Error, Trend ,
+Seasonality )
+
+```{r hw_forec}
+resultado_forecast <- stlf(serie_tiempo, robust=TRUE)
+plot(resultado_forecast)
+```
+
+En la gráfica la linea negra representa los datos observados , la linea
+azul y las bandas al final representan los pronosticos y sus intervalos
+de confianza , la predicion muestra picos y cambios abruptos lo que
+sugiere una variabilidad de los datos lo que podria estar relacionado
+con el nivel dela serie . El modelo utilizado es una ETS(M,N,N)
+(Multiplicativo ,Sin Tendencia(N), Sin estacionalidad (N) ) , esto
+indica que el modelo asume qu los errores se multiplican por el nivel de
+la serie para mejorar la variabilidad de los datos
+
+Aplicamos el metodo Holt Winteres especificando el un modelo
+multiplicativo
+
+```{r hw_mul}
+hw <- HoltWinters(serie_tiempo, seasonal="multiplicative")
+plot(hw)
+```
+
+La linea represnta los datos orginales de la serie de tiempo, la linea
+roja indica la serie ajustada obtenida desde el metodo de Holt-Winters ,
+el cual se puede ver como se suaviza las fluctuaciones ,el modelo se
+centra enla tendencia general y los patrones de estaciones regulares
+
+\*\* Lectura de Alpha, Beta y Gama\*\*
+
+```{r}
+
+alpha <- hw$alpha
+beta <- hw$beta
+gamma <- hw$gamma
+
+# Imprimir los parámetros
+cat("Alpha (nivel):", alpha, "\n")
+cat("Beta (tendencia):", beta, "\n")
+cat("Gamma (estacionalidad):", gamma, "\n")
+
+```
+
+**Alpha:** va tomar valores pasados **Beta** como da cero no existe
+tendencia **Gama** al estar cercano a 0.5 representa estacionalidad
+
+**Componentes de modelo**
+
+```{r hw var}
+print(str(hw$fitted))
+```
+
+**Componente de Nivel**
+
+Este grafico se ajusta para ver la tendencia general excluyendo la
+estacionalidad y los valores irregurales
+
+```{r hwnivel}
+plot(hw$fitted[, "level"], main="Componente de nivel")
+```
+
+Al ver la gráfica podemos ver que empiza en 600 pero sigue creciendo
+hasta 1800 , lo que demuestra una tendencia creciente. Tambien se
+denotan variaciones y periodos donde tiene incrementos y descensos
+temporales , por ejemplo para finales de 2023 e inicios de 2024 se
+observa una voltatilidad , estos cambios son importantes investigarlos
+ya pueden ser factores externos
+
+**Componente de tendencia**
+
+Este componenen nos indica como evoluciona la serie temporal sin tomar
+las variaciones estacionales
+
+```{r hwtende}
+plot(hw$fitted[, "trend"], main="Componente de tendencia")
+```
+
+La linea horizaontal nos muestra que la tendencia es constante a lo
+largo del tiempo , no se observan cambios ,esto indicaria que los
+cambios vistos en los Compenentes de nivel son estacionales o
+irregulares, no tendenciales.
+
+**Componente de estacionalidad**
+
+Este componente nos muestras las variaciones periódicas que ocurren en
+los intervalos regulares
+
+```{r hwestacional}
+plot(hw$fitted[, "season"], main="Componente estacional")
+```
+
+El gráfico muestra cambios claros a lo largo del tiempo , evidenciando
+patrones estacionales. La amplitud de los cambios oscilan entre 0.6 y
+1.4 , la subidas y bajadas reflejan periodicos especificos del año donde
+se espera que en cierto periodo suba o baje el tráfico , para nuestro
+caso puntual serian los periodos donde se realizan las fiestas y ferias.
+Con este componente se puede realizar el diseño e implementación de
+mejoras de la red previniendo los periodos de alto tráfico
+
+**Verificación**
+
+**Prueba de Ljung-Box:** l esta herramienta nos sirve para verificar si
+hay autocorrelaciones significativas en una serie de residuos en
+distintos retrasos
+
+```{r}
+residuos_hw <- residuals(hw)
+ljung_box_result <- Box.test(residuos_hw, type = "Ljung-Box")
+print(ljung_box_result)
+
+```
+
+Dado que el valor -p es menor que 0.05 se rechaza la hipotesis nula que
+no existe autocorrelaciones significativas en los residuos del modelo ,
+esto significa que los residuos no son completamente aleatorios por lo
+tanto el modelo Holt - Winters puede no estar capturando toda la
+estructura dependiente en los datos
+
+Se realiza la prueba de Ljung-Box cun un mayor de retrasos de 30 podria
+proporcionar una vision mas clara de la estructura de autocorrelación en
+los residuos
+
+```{r}
+residuos_hw2 <- residuals(hw)
+ljung_box_result_30 <- Box.test(residuos_hw2, type = "Ljung-Box", lag = 30)
+print(ljung_box_result_30)
+
+```
+
+Al ser el valor -p menor a 0.05 se rechaza la hipotesis nula de que no
+hay autocorrelaciones en los residuos del modelo a los 30 retrasos lo
+que implica que el modelo no esta capturando la estructura actual de los
+datos
+
+**Predicción**
+
+Por medio de la funcion "forecast" realizamos la predicción del modelo
+,en la linea azul se ven los valores originales, en la linea verde los
+valores de la serie ajustada, en la linea rojas los valores predicidos .
+
+```{r  forecast}
+hw_forecast <- forecast(hw, h=365)
+plot(serie_tiempo, type = "l", col = "blue", xlab = "Tiempo", ylab = "Valores", main = "Datos Originales, Ajuste y Pronóstico de Holt-Winters", ylim = range(c(serie_tiempo, hw$fitted[, "xhat"], hw_forecast$mean, hw_forecast$lower, hw_forecast$upper)))
+lines(hw$fitted[, "xhat"], col = "green")
+lines(hw_forecast$mean, col = "red")
+matlines(hw_forecast$mean, hw_forecast$lower[, "80%"], col = "red", lty = 2)
+matlines(hw_forecast$mean, hw_forecast$upper[, "80%"], col = "red", lty = 2)
+matlines(hw_forecast$mean, hw_forecast$lower[, "95%"], col = "red", lty = 2)
+matlines(hw_forecast$mean, hw_forecast$upper[, "95%"], col = "red", lty = 2)
+legend("topright", legend = c("Datos Originales", "Ajuste HW", "Pronóstico HW", "Intervalo 80%", "Intervalo 95%"), col = c("blue", "green", "red", "red", "red"), lty = c(1, 1, 1, 2, 2), merge = TRUE)
+
+```
+
+```{r}
+hw_forecast
+
+```
+
+Al mirar el Point Forecast a lo largo del tiempo se ve el aumento de los
+valores predichos , lo que podria indicar una tendencia ascendente
+esperada en la serie temporal
+
+Al ver la prediccion podemos ver entre más ampliamos la confianza se
+amplia el rango y y aumenta la incertidumbre de los pronósticos que
+cubren el valor real , con esto se puede hacer un análisis de riesgos
+para la empresa
+
+**Conclusión de Holt Winters** EL metodo Holt-Winters si bien es
+aplicado a la estacionalidad encontrando patrones del tráfico , no es
+suficiente para tener un modelo confiable ya que al aplicar la prueba de
+residuos de Ljung_box rechaza la Hipotesisi nula de no tener
+autocorrelacion de los residuos por lo cual no permite captar la
+estructura de los datos ,
+
+## ARIMA
+
+En el apartado 5.3.2 podriamos ver que con (1) diferencia ,si se podia
+apreciar estacionariedad, se puede ver una media constante , varianza
+constante. Verificamos si es estacionaria por medio de la prueba de
+"Dickey-Fuller" , el cual su p-value = 0.01, al ser menor a 0.05 se
+puede determinar que la serie era estacionaria , a continuación podemos
+explorar mas gráficos como el ACF y el PACF:
+
+```{r}
+plot(seriedif)
+```
+
+**ACF**
+
+Este gráfico nos muestra la correlación en la serie (seriediff) y sus
+retrasos
+
+```{r}
+acf(seriedif)
+
+```
+
+En este caso al ver el primer retraso seguido de barras que se vuelven
+insignificantes lo que con lleva aun modelo de **media móvil (1)**
+
+**PACF**
+
+Este mide la correlación parcial entre la serie y sus retrasos ,
+controlando los valores de los retrasos intermedios
+
+```{r}
+pacf(seriedif)
+
+```
+
+En esta gráfica observamos que el primer retraso muestra una correlación
+parcial significativa negativa que luego cae a cero ,lo que puede
+sugerir un **AR(1)**
+
+### ARIMA Manual
+
+Vamos a realizar varios modelos ARIMA teniendo como precedente que según
+el análisis anterior de diferencias(1) , ACF(1) y el PACF(1) , por medio
+del analisis de AIC y BIC seleccionaremos el mejor modelo
+
+```{r}
+arima1<- Arima(serie_tiempo,order =c(0,1,0) )
+arima2<- Arima(serie_tiempo,order =c(0,1,0) )
+arima3<- Arima(serie_tiempo,order =c(1,0,0) )
+arima4<- Arima(serie_tiempo,order =c(2,2,1) )
+arima5<- Arima(serie_tiempo,order =c(0,1,1) )
+arima6<- Arima(serie_tiempo,order =c(2,2,0) )
+arima7<- Arima(serie_tiempo,order =c(2,1,0) )
+arima8<- Arima(serie_tiempo,order =c(3,2,2) )
+arima9<- Arima(serie_tiempo,order =c(1,1,1) )
+arima10<- Arima(serie_tiempo,order =c(1,1,2) )
+arima11<- Arima(serie_tiempo,order =c(1,1,3) )
+arima12<- Arima(serie_tiempo,order =c(0,1,2) )
+arima13<- Arima(serie_tiempo,order =c(1,1,0))
+AIC(arima1,arima2,arima3,arima4,arima5,arima6,arima7,arima8,arima9,arima10,arima11,arima12,arima13)
+BIC(arima1,arima2,arima3,arima4,arima5,arima6,arima7,arima8,arima9,arima10,arima11,arima12,arima13)
+
+```
+
+Realizando varios modelos encontramos que el modelo "arima9" es el mejor
+con **AR(1), DIFF(1) y MA(1)** ,ya que al verificar AIC y BIC nos pueden
+definir que tan bien se ajusta el modelo alos datos ,y la otra evalua su
+complejidad, entre mas sencillo el modelo mejor, ya que entre mas
+parametros puede ocasionar más sobreajuste.
+
+El arima indicaria lo siguiente: **AR:**Se necesita un componentes
+AR(1), lo que indica que los datos pasados tienen efecto sobre los
+valores futuros \*\*Diferenciación\*: Se necesita una (1) diferenciación
+para hacer la serie estacionaria . Esta fue la observación realizada
+anteriormente con una diferencia a la serie original **Media Móvil**:
+Indica que con (1) media móvil seria suficiente, ya que maneja la
+influencia de error de predicción de penúltimo periodo
+
+**Diagnóstico del Modelo**
+
+```{r tsdiagarima9}
+tsdiag(arima9)
+```
+
+**Residuos estandar**: Se pueden ver los residuos distribuidos
+aleatoriamente alrededor de cero , con algunos outlier **Residuos ACF**
+: Todas las autocorrelaciones estan dentro de la banda de confianza , lo
+que significa que no hay autocorrelación de residuos, es decir que esta
+capturando bien la serie temporal **P values de Ljung-Box**: Los valores
+estan por encima de la línea de significancia , lo que indica que los
+residuos no tienen autocorrelación, por lo tanto el modelo es adecuado
+
+**Prueba de Lgung-Box**
+
+```{r lgung box arima9}
+Box.test(residuals(arima9),type ="Ljung-Box")
+```
+
+Prueba de Lgun Box la Hipótesis nos sirve para saber si hay Ruido Blanco
+,si el valor(0.9525) es mayor a (0.5), entonces si hay Ruido Blanco, por
+lo cual se ajusta bien el modelo
+
+**Validación de residuos**
+
+En este gráfico podemos observar que la media es igual a cero
+
+```{r error arima9}
+error=residuals(arima9)
+plot (error)
+```
+
+**Pronóstico**
+
+```{r}
+pronostico_arima9 <- forecast(arima9 ,level=c(95),h=50)
+pronostico_arima9
+
+```
+
+Como podemos ver que el valor a partir del índice 2024.1808 se comporta
+constante con el valor de (882.3)
+
+```{r}
+plot(pronostico_arima9)
+```
+
+### ARIMA con Drift
+
+Incluimos al modelo de ARIMA el parámetro Drift el cual es la inclusión
+de una constante que representa una tendencia lineal en la serie
+temporal después de la diferenciación. Al incluirlo , el modelo puedo
+capturar esa tendencia residual mejorando la precisión del modelo
+
+```{r}
+modelo_arima_drift <- Arima(serie_tiempo, order=c(1,1,1), include.drift=TRUE)
+summary(modelo_arima_drift)
+modelo_arima_drift
+
+```
+
+**Diagnostico del modelo**
+
+```{r drift}
+tsdiag(modelo_arima_drift)
+```
+
+**Residuos estandar**: Se pueden ver los residuos distribuidos
+aleatoriamente alrededor de cero , con algunos outlier **Residuos ACF**
+: Todas las autocorrelaciones estan dentro de la banda de confianza , lo
+que significa que no hay autocorrelación de residuos, es decir que esta
+capturando bien la serie temporal **P values de Ljung-Box**: Los valores
+estan por encima de la línea de significancia , lo que indica que los
+residuos no tienen autocorrelación, por lo tanto el modelo es adecuado
+
+**Prueba de Lgung-Box**
+
+```{r bozta_arimadrift}
+Box.test(residuals(modelo_arima_drift),type ="Ljung-Box")
+```
+
+Prueba de Lgun Box la Hipótesis nos sirve para saber si hay Ruido Blanco
+,si el valor(0.9668) es mayor a (0.5), entonces si hay Ruido Blanco, por
+lo cual se ajusta bien el modelo
+
+**Validación de residuos**
+
+En este gráfico podemos observar que la media es igual a cero
+
+```{r error_arimad}
+error=residuals(modelo_arima_drift)
+plot (error)
+```
+
+**Pronóstico**
+
+```{r}
+# Pronóstico utilizando el modelo ARIMA con drift
+pronostico_arima_drift <- forecast(modelo_arima_drift, h=150)
+pronostico_arima_drift
+plot(pronostico_arima_drift)
+```
+
+Podemos ver como en los puntos de Predicción ya no tiene una tendencia
+lineal,ya los valores presentan una tendencia
+
+### AUTOARIMA
+
+El AUTOARIMA utilizavarios modelos y selecciona los mejores AIC/BIC
+buscando el mejor modelo que ajuste los datos y la el mas simple
+utilizando la menor cantidad de parámetros
+
+```{r}
+modelo<-auto.arima(serie_tiempo)
+modelo
+```
+
+El resultado de AUTOARIMA sugiere un modelo (0,1,2).
+
+**AR:**No hay componentes AR lo que indica que los datos pasados no
+tienen efecto sobre los valores futuros \*\*Diferenciación\*: Se
+necesita una diferenciación para hacer la serie estacionaria . Esta fue
+la observación realizada anteriormente con una diferencia a la serie
+original **Media Móvil**: Indica que con 2 medias moviles seria
+suficiene, ya que maneja la influencia de error de predicción de
+penúltimo periodo, esta elección tambien es dado porque el valor del
+error(-0.0767) es menor respecto al periodo anterior (-0.7636)
+
+**Diagnóstico del Modelo**
+
+```{r tsdiag}
+tsdiag(modelo)
+```
+
+**Residuos estandar** se pueden ver los residuso distribuidos
+aleatoriamente alrededor de cero , con algunos outlier **Residuos ACF**
+: Todas las autocorrelaciones estan dentro de la banda de confianza ,
+loq ue significa que no hay autocorrelación de residuos, lo que sugiere
+que esta capturando bien la serie temporal **P values de Ljung-Box**:
+Los valores estan po rencima de la linea de significancia , lo que
+indica que los residuos no tienen autocorrelación por lo tanto el modelo
+es adecuado
+
+**Prueba de Lgung-Box**
+
+```{r bozta}
+Box.test(residuals(modelo),type ="Ljung-Box")
+```
+
+Prueba de Lgun Box la Hipótesis nos sirve para saber si hay Ruido Blanco
+, en este caso el valor (0.9917) es mayor a (0.5) por lo cual si hay
+Ruido Blanco y se ajusta bien el modelo
+
+**Validación de residuos**
+
+En este gráfico podemos observar que la media es igual a cero
+
+```{r error}
+error=residuals(modelo)
+plot (error)
+```
+
+**Pronóstico**
+
+```{r proautoarima}
+pronostico <- forecast::forecast(modelo ,h=100)
+pronostico
+
+```
+
+En el caso del pronóstico el modelo empiza a mostrar linealidad apartir
+del indice (2024.1671)
+
+### AUTOARIMA con Drift
+
+AL igual que el ARIMA anterior vamos a incluir el parametro Drift para
+ajustar la linealidad
+
+```{r}
+library(forecast)
+modelo_auto_con_drift <- auto.arima(serie_tiempo, d=1, D=0, seasonal=FALSE, allowdrift=TRUE)
+summary(modelo_auto_con_drift)
+modelo_auto_con_drift
+
+```
+
+Se puede ver en el pronóstico una linealidad de (881.29) a parir del
+segundo Indice
+
+```{r}
+
+pronostico_auto_con_drift <- forecast(modelo_auto_con_drift, h=150) 
+pronostico_auto_con_drift
+```
+
+```{r}
+plot(pronostico_auto_con_drift)
+```
+
+### Conclusión
+
+El modelo AUTOARIMA puede no capturar todas las caraterisitcas de una
+serie temporal , como una tendencia residual . Por otro lado al incluir
+el parámetro **drift¨** en el modelo ARIMA(1,1,1) ayudo a capturar esta
+tendencia mejorando el ajuste y la interpretación del modelo
