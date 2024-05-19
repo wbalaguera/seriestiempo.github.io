@@ -23,7 +23,7 @@
 <meta name="author" content="Paula Gonzalez , Cristian Ibañez , Wilson Balaguera" />
 
 
-<meta name="date" content="2024-05-11" />
+<meta name="date" content="2024-05-19" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -168,6 +168,14 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="5.3.2" data-path="análisis-de-estacionariedad.html"><a href="análisis-de-estacionariedad.html#diferencias"><i class="fa fa-check"></i><b>5.3.2</b> Diferencias</a></li>
 </ul></li>
 <li class="chapter" data-level="5.4" data-path="análisis-de-estacionariedad.html"><a href="análisis-de-estacionariedad.html#método-de-holt-winters"><i class="fa fa-check"></i><b>5.4</b> Método de Holt Winters</a></li>
+<li class="chapter" data-level="5.5" data-path="análisis-de-estacionariedad.html"><a href="análisis-de-estacionariedad.html#arima"><i class="fa fa-check"></i><b>5.5</b> ARIMA</a>
+<ul>
+<li class="chapter" data-level="5.5.1" data-path="análisis-de-estacionariedad.html"><a href="análisis-de-estacionariedad.html#arima-manual"><i class="fa fa-check"></i><b>5.5.1</b> ARIMA Manual</a></li>
+<li class="chapter" data-level="5.5.2" data-path="análisis-de-estacionariedad.html"><a href="análisis-de-estacionariedad.html#arima-con-drift"><i class="fa fa-check"></i><b>5.5.2</b> ARIMA con Drift</a></li>
+<li class="chapter" data-level="5.5.3" data-path="análisis-de-estacionariedad.html"><a href="análisis-de-estacionariedad.html#autoarima"><i class="fa fa-check"></i><b>5.5.3</b> AUTOARIMA</a></li>
+<li class="chapter" data-level="5.5.4" data-path="análisis-de-estacionariedad.html"><a href="análisis-de-estacionariedad.html#autoarima-con-drift"><i class="fa fa-check"></i><b>5.5.4</b> AUTOARIMA con Drift</a></li>
+<li class="chapter" data-level="5.5.5" data-path="análisis-de-estacionariedad.html"><a href="análisis-de-estacionariedad.html#conclusión"><i class="fa fa-check"></i><b>5.5.5</b> Conclusión</a></li>
+</ul></li>
 </ul></li>
 <li class="chapter" data-level="6" data-path="pasos-siguientes.html"><a href="pasos-siguientes.html"><i class="fa fa-check"></i><b>6</b> Pasos siguientes</a></li>
 <li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>References</a></li>
@@ -195,7 +203,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <h1><span class="header-section-number">Capítulo 5</span> Análisis de Estacionariedad<a href="análisis-de-estacionariedad.html#análisis-de-estacionariedad" class="anchor-section" aria-label="Anchor link to header"></a></h1>
 <div id="carga-de-serie" class="section level2 hasAnchor" number="5.1">
 <h2><span class="header-section-number">5.1</span> Carga de Serie<a href="análisis-de-estacionariedad.html#carga-de-serie" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>Importamos la serie de tiempo del tráfico LTE y verificamos su rango de fechas</p>
+<p>Importamos la serie de tiempo del tráfico LTE y verificamos su rango de
+fechas</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="análisis-de-estacionariedad.html#cb1-1" tabindex="-1"></a>datos <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">&quot;serie_tiempo.csv&quot;</span>)</span></code></pre></div>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="análisis-de-estacionariedad.html#cb2-1" tabindex="-1"></a>fecha_inicio <span class="ot">&lt;-</span> <span class="fu">as.Date</span>(<span class="st">&quot;2021-01-01&quot;</span>)</span>
 <span id="cb2-2"><a href="análisis-de-estacionariedad.html#cb2-2" tabindex="-1"></a>serie_tiempo <span class="ot">&lt;-</span> <span class="fu">ts</span>(datos<span class="sc">$</span>x, <span class="at">start =</span> <span class="fu">c</span>(<span class="fu">format</span>(fecha_inicio, <span class="st">&quot;%Y&quot;</span>), <span class="fu">format</span>(fecha_inicio, <span class="st">&quot;%j&quot;</span>)), <span class="at">frequency =</span> <span class="dv">365</span>)</span></code></pre></div>
@@ -215,10 +224,17 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <h2><span class="header-section-number">5.2</span> Análisis<a href="análisis-de-estacionariedad.html#análisis" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>Dentro la imagen podemos observar lo siguiente</p>
 <ol style="list-style-type: decimal">
-<li><p><strong>Observed:</strong>: Nos muestra la serie original , es decir la serie de tráfico LTE sin modificaciones.</p></li>
-<li><p><strong>Tred:</strong> En la tendencia nos muestra la eliminacion del ruido y estacionarie sin embargo se observan los picos de tráfico al final.</p></li>
-<li><p><strong>Seasonal:</strong>: En la Estacionariedad podemos observar un patrón claro y repetitivo , lo cual indica que existe estacionariedad en los datos del tráfico en esta de serie de tiempo.</p></li>
-<li><p><strong>Random</strong>: Este gráfico muestra residuales o fluctuaciones que nos se pueden explicar , ya que puede ser atípicos o ruido, para estos casos particulares en tráfico hay que hacer investigaciones de las causas de estas anomalias.</p></li>
+<li><p><strong>Observed:</strong>: Nos muestra la serie original , es decir la serie de
+tráfico LTE sin modificaciones.</p></li>
+<li><p><strong>Tred:</strong> En la tendencia nos muestra la eliminacion del ruido y
+estacionarie sin embargo se observan los picos de tráfico al final.</p></li>
+<li><p><strong>Seasonal:</strong>: En la Estacionariedad podemos observar un patrón
+claro y repetitivo , lo cual indica que existe estacionariedad en
+los datos del tráfico en esta de serie de tiempo.</p></li>
+<li><p><strong>Random</strong>: Este gráfico muestra residuales o fluctuaciones que nos
+se pueden explicar , ya que puede ser atípicos o ruido, para estos
+casos particulares en tráfico hay que hacer investigaciones de las
+causas de estas anomalias.</p></li>
 </ol>
 <div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="análisis-de-estacionariedad.html#cb7-1" tabindex="-1"></a>descomposicion <span class="ot">&lt;-</span> <span class="fu">decompose</span>(serie_tiempo)</span>
 <span id="cb7-2"><a href="análisis-de-estacionariedad.html#cb7-2" tabindex="-1"></a><span class="fu">plot</span>(descomposicion)</span></code></pre></div>
@@ -226,16 +242,21 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </div>
 <div id="diferenciacion-y-logaritmos" class="section level2 hasAnchor" number="5.3">
 <h2><span class="header-section-number">5.3</span> Diferenciacion y Logaritmos<a href="análisis-de-estacionariedad.html#diferenciacion-y-logaritmos" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>Para poder realizar un ARIMA es importante tener estacionariedad , por eso debemos convertirlo en estacionaria por medio de una transformación de logaritmos o diferencias</p>
+<p>Para poder realizar un ARIMA es importante tener estacionariedad , por
+eso debemos convertirlo en estacionaria por medio de una transformación
+de logaritmos o diferencias</p>
 <div id="logaritmos" class="section level3 hasAnchor" number="5.3.1">
 <h3><span class="header-section-number">5.3.1</span> Logaritmos<a href="análisis-de-estacionariedad.html#logaritmos" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<p>La función logaritmica es una función continua deja los mínimos y máximos bajo logaritmo, estabilizando la varianza .</p>
+<p>La función logaritmica es una función continua deja los mínimos y
+máximos bajo logaritmo, estabilizando la varianza .</p>
 <p>Para el caso de logaritmos usamos la función “log”</p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="análisis-de-estacionariedad.html#cb8-1" tabindex="-1"></a>serielog<span class="ot">=</span><span class="fu">log</span>(serie_tiempo)</span>
 <span id="cb8-2"><a href="análisis-de-estacionariedad.html#cb8-2" tabindex="-1"></a><span class="fu">plot</span>(serielog)</span></code></pre></div>
-<p><img src="Series-de-Tiempo_files/figure-html/4_1_log-1.png" width="672" />
-Al ver la gráfica no podemos apreciar estacionariedad ya que se ven caidas y bajadas y su media es diferente de cero.</p>
-<p>Verificamos si es estacionaria por medio de la prueba de “Dickey-Fuller” con la libreria “adf”</p>
+<p><img src="Series-de-Tiempo_files/figure-html/4_1_log-1.png" width="672" /></p>
+<p>Al ver la gráfica no podemos apreciar estacionariedad ya que se ven
+caidas y bajadas y su media es diferente de cero.</p>
+<p>Verificamos si es estacionaria por medio de la prueba de “Dickey-Fuller”
+con la libreria “adf”</p>
 <div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="análisis-de-estacionariedad.html#cb9-1" tabindex="-1"></a><span class="fu">adf.test</span>(serielog,<span class="at">alternative =</span> <span class="st">&quot;stationary&quot;</span>)</span></code></pre></div>
 <pre><code>## 
 ##  Augmented Dickey-Fuller Test
@@ -243,20 +264,24 @@ Al ver la gráfica no podemos apreciar estacionariedad ya que se ven caidas y ba
 ## data:  serielog
 ## Dickey-Fuller = -2.6979, Lag order = 10, p-value = 0.2829
 ## alternative hypothesis: stationary</code></pre>
-<p>El resultado de es p-value = 0.2829 al ser mayor a 0.05 se puede determinar que es una serie no estacionaria</p>
+<p>El resultado de es p-value = 0.2829 al ser mayor a 0.05 se puede
+determinar que es una serie no estacionaria</p>
 <p>Con logaritmo no logramos conseguir Estacionariedad</p>
 </div>
 <div id="diferencias" class="section level3 hasAnchor" number="5.3.2">
 <h3><span class="header-section-number">5.3.2</span> Diferencias<a href="análisis-de-estacionariedad.html#diferencias" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<p>Antes de realizar las diferencias podemos ejecutar el comando “ndiffs” para saber cuantas diferencias necesitamos</p>
+<p>Antes de realizar las diferencias podemos ejecutar el comando “ndiffs”
+para saber cuantas diferencias necesitamos</p>
 <div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="análisis-de-estacionariedad.html#cb11-1" tabindex="-1"></a><span class="fu">ndiffs</span>(serie_tiempo)</span></code></pre></div>
 <pre><code>## [1] 1</code></pre>
 <p>El resultado es “1” diferencia para convertir la serie en estacionaria</p>
 <div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="análisis-de-estacionariedad.html#cb13-1" tabindex="-1"></a>seriedif<span class="ot">=</span><span class="fu">diff</span>(serie_tiempo)</span>
 <span id="cb13-2"><a href="análisis-de-estacionariedad.html#cb13-2" tabindex="-1"></a><span class="fu">plot</span>(seriedif,<span class="at">lty=</span><span class="st">&quot;dashed&quot;</span>,<span class="at">col=</span><span class="st">&quot;red&quot;</span>,<span class="at">main=</span><span class="st">&quot;Serie de Tiempo de Tráfico LTE&quot;</span>)</span></code></pre></div>
 <p><img src="Series-de-Tiempo_files/figure-html/4_5_dir_serie-1.png" width="672" /></p>
-<p>Al ver la gráfica podemos apreciar que los datos estan alrededor de la misma media , en este caso de “cero”</p>
-<p>Para verificar si es estacionaria lo hacemos por medio de la prueba de “Dickey-Fuller” con la libreria “adf”</p>
+<p>Al ver la gráfica podemos apreciar que los datos estan alrededor de la
+misma media , en este caso de “cero”</p>
+<p>Para verificar si es estacionaria lo hacemos por medio de la prueba de
+“Dickey-Fuller” con la libreria “adf”</p>
 <div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="análisis-de-estacionariedad.html#cb14-1" tabindex="-1"></a><span class="fu">adf.test</span>(seriedif,<span class="at">alternative =</span> <span class="st">&quot;stationary&quot;</span>)</span></code></pre></div>
 <pre><code>## Warning in adf.test(seriedif, alternative = &quot;stationary&quot;): p-value smaller than
 ## printed p-value</code></pre>
@@ -266,8 +291,10 @@ Al ver la gráfica no podemos apreciar estacionariedad ya que se ven caidas y ba
 ## data:  seriedif
 ## Dickey-Fuller = -14.6, Lag order = 10, p-value = 0.01
 ## alternative hypothesis: stationary</code></pre>
-<p>El resultado de es p-value = 0.01 al ser menor a 0.05 se puede determinar que es una serie que si es estacionaria</p>
-<p>Podemos validar si necesitamos mas diferenciaciones con el comando “ndiffs”</p>
+<p>El resultado de es p-value = 0.01 al ser menor a 0.05 se puede
+determinar que es una serie que si es estacionaria</p>
+<p>Podemos validar si necesitamos mas diferenciaciones con el comando
+“ndiffs”</p>
 <div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="análisis-de-estacionariedad.html#cb17-1" tabindex="-1"></a><span class="fu">ndiffs</span>(seriedif)</span></code></pre></div>
 <pre><code>## [1] 0</code></pre>
 <p>El resultado es cero por lo cuál no necesitamos más diferenciaciones</p>
@@ -277,18 +304,30 @@ Al ver la gráfica no podemos apreciar estacionariedad ya que se ven caidas y ba
 <span id="cb19-3"><a href="análisis-de-estacionariedad.html#cb19-3" tabindex="-1"></a><span class="fu">Acf</span>(serie_tiempo,<span class="at">main=</span><span class="st">&quot;Serie No Estacionaria&quot;</span>)</span>
 <span id="cb19-4"><a href="análisis-de-estacionariedad.html#cb19-4" tabindex="-1"></a><span class="fu">plot</span>(seriedif)</span>
 <span id="cb19-5"><a href="análisis-de-estacionariedad.html#cb19-5" tabindex="-1"></a><span class="fu">acf</span>(seriedif,<span class="at">main=</span><span class="st">&quot;Serie Estacionaria&quot;</span>)</span></code></pre></div>
-<p><img src="Series-de-Tiempo_files/figure-html/4_8_Autocorr-1.png" width="672" />
-Podemos observar que el primer gráfico ” no es estacionario” tiene una tendencia , la cual es verificada por la autocorrelación de la derecha . el cual supera el umbral de líneas azules (+/-)1.96</p>
-<p>En los gráficos inferiores se puede ver una media constante , varianza constante, y se puede ver en la gráfica de la derecha la comprobación de autocorrelacion donde se visualiza que no supera el umbral de (+/-)1.96</p>
+<p><img src="Series-de-Tiempo_files/figure-html/4_8_Autocorr-1.png" width="672" /></p>
+<p>Podemos observar que el primer gráfico ” no es estacionario” tiene una
+tendencia , la cual es verificada por la autocorrelación de la derecha .
+el cual supera el umbral de líneas azules (+/-)1.96</p>
+<p>En los gráficos inferiores se puede ver una media constante , varianza
+constante, y se puede ver en la gráfica de la derecha la comprobación de
+autocorrelacion donde se visualiza que no supera el umbral de (+/-)1.96</p>
 </div>
 </div>
 <div id="método-de-holt-winters" class="section level2 hasAnchor" number="5.4">
 <h2><span class="header-section-number">5.4</span> Método de Holt Winters<a href="análisis-de-estacionariedad.html#método-de-holt-winters" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>Para hacer prediciones utilizando datos con tendencia y estacionalidad, recurrimos al método estacional de Holt-Winters . Este método se puede implementar con una estructura “Aditiva” o una estrucutra “multiplicativa”</p>
-<p>El modelo aditivo se utliza mejor cuando la tendencia estacional es la misma magnitud en todo el conjunto de datos, mientras que el modelo multiplicativo cuando la magnitud de la estacionalidad cambia a medida que aumenta o disminuye el tiempo el tiempo</p>
+<p>Para hacer prediciones utilizando datos con tendencia y estacionalidad,
+recurrimos al método estacional de Holt-Winters . Este método se puede
+implementar con una estructura “Aditiva” o una estrucutra
+“multiplicativa”</p>
+<p>El modelo aditivo se utliza mejor cuando la tendencia estacional es la
+misma magnitud en todo el conjunto de datos, mientras que el modelo
+multiplicativo cuando la magnitud de la estacionalidad cambia a medida
+que aumenta o disminuye el tiempo el tiempo</p>
 <div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="análisis-de-estacionariedad.html#cb20-1" tabindex="-1"></a><span class="fu">plot</span>(serie_tiempo)</span></code></pre></div>
 <p><img src="Series-de-Tiempo_files/figure-html/hw%20plot-1.png" width="672" /></p>
-<p>Al ver la gráfica al tener una periocidad diaria no es claro si usar el modelo aditivo o multiplicativo por lo cual evaluamos la homocedasticidad de los residuos .</p>
+<p>Al ver la gráfica al tener una periocidad diaria no es claro si usar el
+modelo aditivo o multiplicativo por lo cual evaluamos la
+homocedasticidad de los residuos .</p>
 <div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="análisis-de-estacionariedad.html#cb21-1" tabindex="-1"></a><span class="fu">frequency</span>(serie_tiempo)</span></code></pre></div>
 <pre><code>## [1] 365</code></pre>
 <p><strong>Modelo Aditivo</strong></p>
@@ -300,17 +339,32 @@ Podemos observar que el primer gráfico ” no es estacionario” tiene una tend
 <span id="cb24-2"><a href="análisis-de-estacionariedad.html#cb24-2" tabindex="-1"></a>modelo_multiplicativo <span class="ot">&lt;-</span> <span class="fu">decompose</span>(serie_tiempo, <span class="at">type=</span><span class="st">&quot;multiplicative&quot;</span>)</span>
 <span id="cb24-3"><a href="análisis-de-estacionariedad.html#cb24-3" tabindex="-1"></a><span class="fu">plot</span>(modelo_multiplicativo)</span></code></pre></div>
 <p><img src="Series-de-Tiempo_files/figure-html/hw_multi-1.png" width="672" /></p>
-<p>Al revisar los dos modelos en la parte de <strong>residuos</strong> podemos ver que el multiplicativo es mas viable ya que parecen mas aleatorios y con menos patrones sistematicos que el modelo aditivo</p>
-<p>Para volver a verificar vamos a usa la descomposición STL (Seasonal and Trend decomposition using Loess) y un modelo ETS(Error, Trend , Seasonality )</p>
+<p>Al revisar los dos modelos en la parte de <strong>residuos</strong> podemos ver que
+el multiplicativo es mas viable ya que parecen mas aleatorios y con
+menos patrones sistematicos que el modelo aditivo</p>
+<p>Para volver a verificar vamos a usa la descomposición STL (Seasonal and
+Trend decomposition using Loess) y un modelo ETS(Error, Trend ,
+Seasonality )</p>
 <div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="análisis-de-estacionariedad.html#cb25-1" tabindex="-1"></a>resultado_forecast <span class="ot">&lt;-</span> <span class="fu">stlf</span>(serie_tiempo, <span class="at">robust=</span><span class="cn">TRUE</span>)</span>
 <span id="cb25-2"><a href="análisis-de-estacionariedad.html#cb25-2" tabindex="-1"></a><span class="fu">plot</span>(resultado_forecast)</span></code></pre></div>
-<p><img src="Series-de-Tiempo_files/figure-html/hw_forec-1.png" width="672" />
-En la gráfica la linea negra representa los datos observados , la linea azul y las bandas al final representan los pronosticos y sus intervalos de confianza , la predicion muestra picos y cambios abruptos lo que sugiere una variabilidad de los datos lo que podria estar relacionado con el nivel dela serie . El modelo utilizado es una ETS(M,N,N) (Multiplicativo ,Sin Tendencia(N), Sin estacionalidad (N) ) , esto indica que el modelo asume qu los errores se multiplican por el nivel de la serie para mejorar la variabilidad de los datos</p>
-<p>Aplicamos el metodo Holt Winteres especificando el un modelo multiplicativo</p>
+<p><img src="Series-de-Tiempo_files/figure-html/hw_forec-1.png" width="672" /></p>
+<p>En la gráfica la linea negra representa los datos observados , la linea
+azul y las bandas al final representan los pronosticos y sus intervalos
+de confianza , la predicion muestra picos y cambios abruptos lo que
+sugiere una variabilidad de los datos lo que podria estar relacionado
+con el nivel dela serie . El modelo utilizado es una ETS(M,N,N)
+(Multiplicativo ,Sin Tendencia(N), Sin estacionalidad (N) ) , esto
+indica que el modelo asume qu los errores se multiplican por el nivel de
+la serie para mejorar la variabilidad de los datos</p>
+<p>Aplicamos el metodo Holt Winteres especificando el un modelo
+multiplicativo</p>
 <div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="análisis-de-estacionariedad.html#cb26-1" tabindex="-1"></a>hw <span class="ot">&lt;-</span> <span class="fu">HoltWinters</span>(serie_tiempo, <span class="at">seasonal=</span><span class="st">&quot;multiplicative&quot;</span>)</span>
 <span id="cb26-2"><a href="análisis-de-estacionariedad.html#cb26-2" tabindex="-1"></a><span class="fu">plot</span>(hw)</span></code></pre></div>
-<p><img src="Series-de-Tiempo_files/figure-html/hw_mul-1.png" width="672" />
-La linea represnta los datos orginales de la serie de tiempo, la linea roja indica la serie ajustada obtenida desde el metodo de Holt-Winters , el cual se puede ver como se suaviza las fluctuaciones ,el modelo se centra enla tendencia general y los patrones de estaciones regulares</p>
+<p><img src="Series-de-Tiempo_files/figure-html/hw_mul-1.png" width="672" /></p>
+<p>La linea represnta los datos orginales de la serie de tiempo, la linea
+roja indica la serie ajustada obtenida desde el metodo de Holt-Winters ,
+el cual se puede ver como se suaviza las fluctuaciones ,el modelo se
+centra enla tendencia general y los patrones de estaciones regulares</p>
 <p>** Lectura de Alpha, Beta y Gama**</p>
 <div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="análisis-de-estacionariedad.html#cb27-1" tabindex="-1"></a>alpha <span class="ot">&lt;-</span> hw<span class="sc">$</span>alpha</span>
 <span id="cb27-2"><a href="análisis-de-estacionariedad.html#cb27-2" tabindex="-1"></a>beta <span class="ot">&lt;-</span> hw<span class="sc">$</span>beta</span>
@@ -323,9 +377,8 @@ La linea represnta los datos orginales de la serie de tiempo, la linea roja indi
 <pre><code>## Beta (tendencia): 0</code></pre>
 <div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="análisis-de-estacionariedad.html#cb31-1" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Gamma (estacionalidad):&quot;</span>, gamma, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
 <pre><code>## Gamma (estacionalidad): 0.5320815</code></pre>
-<p><strong>Alpha:</strong> va tomar valores pasados
-<strong>Beta</strong> como da cero no existe tendencia
-<strong>Gama</strong> al estar cercano a 0.5 representa estacionalidad</p>
+<p><strong>Alpha:</strong> va tomar valores pasados <strong>Beta</strong> como da cero no existe
+tendencia <strong>Gama</strong> al estar cercano a 0.5 representa estacionalidad</p>
 <p><strong>Componentes de modelo</strong></p>
 <div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb33-1"><a href="análisis-de-estacionariedad.html#cb33-1" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">str</span>(hw<span class="sc">$</span>fitted))</span></code></pre></div>
 <pre><code>##  Time-Series [1:790, 1:4] from 2022 to 2024: 363 359 418 496 562 ...
@@ -333,23 +386,42 @@ La linea represnta los datos orginales de la serie de tiempo, la linea roja indi
 ##   ..$ : NULL
 ##   ..$ : chr [1:4] &quot;xhat&quot; &quot;level&quot; &quot;trend&quot; &quot;season&quot;
 ## NULL</code></pre>
-<p><strong>Componente de Nivel </strong></p>
-<p>Este grafico se ajusta para ver la tendencia general excluyendo la estacionalidad y los valores irregurales</p>
+<p><strong>Componente de Nivel</strong></p>
+<p>Este grafico se ajusta para ver la tendencia general excluyendo la
+estacionalidad y los valores irregurales</p>
 <div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb35-1"><a href="análisis-de-estacionariedad.html#cb35-1" tabindex="-1"></a><span class="fu">plot</span>(hw<span class="sc">$</span>fitted[, <span class="st">&quot;level&quot;</span>], <span class="at">main=</span><span class="st">&quot;Componente de nivel&quot;</span>)</span></code></pre></div>
-<p><img src="Series-de-Tiempo_files/figure-html/hwnivel-1.png" width="672" />
-Al ver la gráfica podemos ver que empiza en 600 pero sigue creciendo hasta 1800 , lo que demuestra una tendencia creciente. Tambien se denotan variaciones y periodos donde tiene incrementos y descensos temporales , por ejemplo para finales de 2023 e inicios de 2024 se observa una voltatilidad , estos cambios son importantes investigarlos ya pueden ser factores externos</p>
+<p><img src="Series-de-Tiempo_files/figure-html/hwnivel-1.png" width="672" /></p>
+<p>Al ver la gráfica podemos ver que empiza en 600 pero sigue creciendo
+hasta 1800 , lo que demuestra una tendencia creciente. Tambien se
+denotan variaciones y periodos donde tiene incrementos y descensos
+temporales , por ejemplo para finales de 2023 e inicios de 2024 se
+observa una voltatilidad , estos cambios son importantes investigarlos
+ya pueden ser factores externos</p>
 <p><strong>Componente de tendencia</strong></p>
-<p>Este componenen nos indica como evoluciona la serie temporal sin tomar las variaciones estacionales</p>
+<p>Este componenen nos indica como evoluciona la serie temporal sin tomar
+las variaciones estacionales</p>
 <div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb36-1"><a href="análisis-de-estacionariedad.html#cb36-1" tabindex="-1"></a><span class="fu">plot</span>(hw<span class="sc">$</span>fitted[, <span class="st">&quot;trend&quot;</span>], <span class="at">main=</span><span class="st">&quot;Componente de tendencia&quot;</span>)</span></code></pre></div>
-<p><img src="Series-de-Tiempo_files/figure-html/hwtende-1.png" width="672" />
-La linea horizaontal nos muestra que la tendencia es constante a lo largo del tiempo , no se observan cambios ,esto indicaria que los cambios vistos en los Compenentes de nivel son estacionales o irregulares, no tendenciales.</p>
+<p><img src="Series-de-Tiempo_files/figure-html/hwtende-1.png" width="672" /></p>
+<p>La linea horizaontal nos muestra que la tendencia es constante a lo
+largo del tiempo , no se observan cambios ,esto indicaria que los
+cambios vistos en los Compenentes de nivel son estacionales o
+irregulares, no tendenciales.</p>
 <p><strong>Componente de estacionalidad</strong></p>
-<p>Este componente nos muestras las variaciones periódicas que ocurren en los intervalos regulares</p>
+<p>Este componente nos muestras las variaciones periódicas que ocurren en
+los intervalos regulares</p>
 <div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="análisis-de-estacionariedad.html#cb37-1" tabindex="-1"></a><span class="fu">plot</span>(hw<span class="sc">$</span>fitted[, <span class="st">&quot;season&quot;</span>], <span class="at">main=</span><span class="st">&quot;Componente estacional&quot;</span>)</span></code></pre></div>
-<p><img src="Series-de-Tiempo_files/figure-html/hwestacional-1.png" width="672" />
-El gráfico muestra cambios claros a lo largo del tiempo , evidenciando patrones estacionales. La amplitud de los cambios oscilan entre 0.6 y 1.4 , la subidas y bajadas reflejan periodicos especificos del año donde se espera que en cierto periodo suba o baje el tráfico , para nuestro caso puntual serian los periodos donde se realizan las fiestas y ferias. Con este componente se puede realizar el diseño e implementación de mejoras de la red previniendo los periodos de alto tráfico</p>
+<p><img src="Series-de-Tiempo_files/figure-html/hwestacional-1.png" width="672" /></p>
+<p>El gráfico muestra cambios claros a lo largo del tiempo , evidenciando
+patrones estacionales. La amplitud de los cambios oscilan entre 0.6 y
+1.4 , la subidas y bajadas reflejan periodicos especificos del año donde
+se espera que en cierto periodo suba o baje el tráfico , para nuestro
+caso puntual serian los periodos donde se realizan las fiestas y ferias.
+Con este componente se puede realizar el diseño e implementación de
+mejoras de la red previniendo los periodos de alto tráfico</p>
 <p><strong>Verificación</strong></p>
-<p><strong>Prueba de Ljung-Box:</strong> l esta herramienta nos sirve para verificar si hay autocorrelaciones significativas en una serie de residuos en distintos retrasos</p>
+<p><strong>Prueba de Ljung-Box:</strong> l esta herramienta nos sirve para verificar si
+hay autocorrelaciones significativas en una serie de residuos en
+distintos retrasos</p>
 <div class="sourceCode" id="cb38"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb38-1"><a href="análisis-de-estacionariedad.html#cb38-1" tabindex="-1"></a>residuos_hw <span class="ot">&lt;-</span> <span class="fu">residuals</span>(hw)</span>
 <span id="cb38-2"><a href="análisis-de-estacionariedad.html#cb38-2" tabindex="-1"></a>ljung_box_result <span class="ot">&lt;-</span> <span class="fu">Box.test</span>(residuos_hw, <span class="at">type =</span> <span class="st">&quot;Ljung-Box&quot;</span>)</span>
 <span id="cb38-3"><a href="análisis-de-estacionariedad.html#cb38-3" tabindex="-1"></a><span class="fu">print</span>(ljung_box_result)</span></code></pre></div>
@@ -358,8 +430,14 @@ El gráfico muestra cambios claros a lo largo del tiempo , evidenciando patrones
 ## 
 ## data:  residuos_hw
 ## X-squared = 5.1468, df = 1, p-value = 0.02329</code></pre>
-<p>Dadoque el valor -p es menor que 0.05 se rechaza la hipotesis nula que no existe autocrrelaciones significativas en los residuos del modelo , esto significa que los residuos no son completamente aleatorios por lo tanto el modelo Holt - Winters puede no estar capturando toda la estructura dependiente en los datos</p>
-<p>Se realiza la prueba de Ljung-Box cun un mayor de retrasos de 30 podria proporcionar una vision mas clara de la estructura de autocorrelación en los residuos</p>
+<p>Dado que el valor -p es menor que 0.05 se rechaza la hipotesis nula que
+no existe autocorrelaciones significativas en los residuos del modelo ,
+esto significa que los residuos no son completamente aleatorios por lo
+tanto el modelo Holt - Winters puede no estar capturando toda la
+estructura dependiente en los datos</p>
+<p>Se realiza la prueba de Ljung-Box cun un mayor de retrasos de 30 podria
+proporcionar una vision mas clara de la estructura de autocorrelación en
+los residuos</p>
 <div class="sourceCode" id="cb40"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb40-1"><a href="análisis-de-estacionariedad.html#cb40-1" tabindex="-1"></a>residuos_hw2 <span class="ot">&lt;-</span> <span class="fu">residuals</span>(hw)</span>
 <span id="cb40-2"><a href="análisis-de-estacionariedad.html#cb40-2" tabindex="-1"></a>ljung_box_result_30 <span class="ot">&lt;-</span> <span class="fu">Box.test</span>(residuos_hw2, <span class="at">type =</span> <span class="st">&quot;Ljung-Box&quot;</span>, <span class="at">lag =</span> <span class="dv">30</span>)</span>
 <span id="cb40-3"><a href="análisis-de-estacionariedad.html#cb40-3" tabindex="-1"></a><span class="fu">print</span>(ljung_box_result_30)</span></code></pre></div>
@@ -368,9 +446,14 @@ El gráfico muestra cambios claros a lo largo del tiempo , evidenciando patrones
 ## 
 ## data:  residuos_hw2
 ## X-squared = 54.07, df = 30, p-value = 0.004515</code></pre>
-<p>Al ser el valor -p menor a 0.05 se rechaza la hipotesis nula de que no hay autocorrelaciones en los residuos del modelo a los 30 retrasos lo que implica que el modelo no esta capturando la estructura actual de los datos</p>
+<p>Al ser el valor -p menor a 0.05 se rechaza la hipotesis nula de que no
+hay autocorrelaciones en los residuos del modelo a los 30 retrasos lo
+que implica que el modelo no esta capturando la estructura actual de los
+datos</p>
 <p><strong>Predicción</strong></p>
-<p>Por medio de la funcion “forecast” realizamos la predicción del modelo ,en la linea azul se ven los valores originales, en la linea verde los valores de la serie ajustada, en la linea rojas los valores predicidos .</p>
+<p>Por medio de la funcion “forecast” realizamos la predicción del modelo
+,en la linea azul se ven los valores originales, en la linea verde los
+valores de la serie ajustada, en la linea rojas los valores predicidos .</p>
 <div class="sourceCode" id="cb42"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb42-1"><a href="análisis-de-estacionariedad.html#cb42-1" tabindex="-1"></a>hw_forecast <span class="ot">&lt;-</span> <span class="fu">forecast</span>(hw, <span class="at">h=</span><span class="dv">365</span>)</span>
 <span id="cb42-2"><a href="análisis-de-estacionariedad.html#cb42-2" tabindex="-1"></a><span class="fu">plot</span>(serie_tiempo, <span class="at">type =</span> <span class="st">&quot;l&quot;</span>, <span class="at">col =</span> <span class="st">&quot;blue&quot;</span>, <span class="at">xlab =</span> <span class="st">&quot;Tiempo&quot;</span>, <span class="at">ylab =</span> <span class="st">&quot;Valores&quot;</span>, <span class="at">main =</span> <span class="st">&quot;Datos Originales, Ajuste y Pronóstico de Holt-Winters&quot;</span>, <span class="at">ylim =</span> <span class="fu">range</span>(<span class="fu">c</span>(serie_tiempo, hw<span class="sc">$</span>fitted[, <span class="st">&quot;xhat&quot;</span>], hw_forecast<span class="sc">$</span>mean, hw_forecast<span class="sc">$</span>lower, hw_forecast<span class="sc">$</span>upper)))</span>
 <span id="cb42-3"><a href="análisis-de-estacionariedad.html#cb42-3" tabindex="-1"></a><span class="fu">lines</span>(hw<span class="sc">$</span>fitted[, <span class="st">&quot;xhat&quot;</span>], <span class="at">col =</span> <span class="st">&quot;green&quot;</span>)</span>
@@ -748,9 +831,772 @@ El gráfico muestra cambios claros a lo largo del tiempo , evidenciando patrones
 ## 2025.1562      1072.1907  430.4132 1713.9681  90.67674 2053.705
 ## 2025.1589      1032.0268  412.9243 1651.1292  85.19128 1978.862
 ## 2025.1616      1043.8682  414.8183 1672.9180  81.81940 2005.917</code></pre>
-<p>Al mirar el Point Forecast a lo largo del tiempo se ve el aumento de los valores predichos , lo que podria indicar una tendencia ascendente esperada en la serie temporal</p>
-<p>Al ver la prediccion podemos ver entre más ampliamos la confianza se amplia el rango y y aumenta la incertidumbre de los pronósticos que cubren el valor real , con esto se puede hacer un análisis de riesgos para la empresa</p>
+<p>Al mirar el Point Forecast a lo largo del tiempo se ve el aumento de los
+valores predichos , lo que podria indicar una tendencia ascendente
+esperada en la serie temporal</p>
+<p>Al ver la prediccion podemos ver entre más ampliamos la confianza se
+amplia el rango y y aumenta la incertidumbre de los pronósticos que
+cubren el valor real , con esto se puede hacer un análisis de riesgos
+para la empresa</p>
+<p><strong>Conclusión de Holt Winters</strong> EL metodo Holt-Winters si bien es
+aplicado a la estacionalidad encontrando patrones del tráfico , no es
+suficiente para tener un modelo confiable ya que al aplicar la prueba de
+residuos de Ljung_box rechaza la Hipotesisi nula de no tener
+autocorrelacion de los residuos por lo cual no permite captar la
+estructura de los datos ,</p>
+</div>
+<div id="arima" class="section level2 hasAnchor" number="5.5">
+<h2><span class="header-section-number">5.5</span> ARIMA<a href="análisis-de-estacionariedad.html#arima" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>En el apartado 5.3.2 podriamos ver que con (1) diferencia ,si se podia
+apreciar estacionariedad, se puede ver una media constante , varianza
+constante. Verificamos si es estacionaria por medio de la prueba de
+“Dickey-Fuller” , el cual su p-value = 0.01, al ser menor a 0.05 se
+puede determinar que la serie era estacionaria , a continuación podemos
+explorar mas gráficos como el ACF y el PACF:</p>
+<div class="sourceCode" id="cb45"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb45-1"><a href="análisis-de-estacionariedad.html#cb45-1" tabindex="-1"></a><span class="fu">plot</span>(seriedif)</span></code></pre></div>
+<p><img src="Series-de-Tiempo_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+<p><strong>ACF</strong></p>
+<p>Este gráfico nos muestra la correlación en la serie (seriediff) y sus
+retrasos</p>
+<div class="sourceCode" id="cb46"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb46-1"><a href="análisis-de-estacionariedad.html#cb46-1" tabindex="-1"></a><span class="fu">acf</span>(seriedif)</span></code></pre></div>
+<p><img src="Series-de-Tiempo_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+<p>En este caso al ver el primer retraso seguido de barras que se vuelven
+insignificantes lo que con lleva aun modelo de <strong>media móvil (1)</strong></p>
+<p><strong>PACF</strong></p>
+<p>Este mide la correlación parcial entre la serie y sus retrasos ,
+controlando los valores de los retrasos intermedios</p>
+<div class="sourceCode" id="cb47"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb47-1"><a href="análisis-de-estacionariedad.html#cb47-1" tabindex="-1"></a><span class="fu">pacf</span>(seriedif)</span></code></pre></div>
+<p><img src="Series-de-Tiempo_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+<p>En esta gráfica observamos que el primer retraso muestra una correlación
+parcial significativa negativa que luego cae a cero ,lo que puede
+sugerir un <strong>AR(1)</strong></p>
+<div id="arima-manual" class="section level3 hasAnchor" number="5.5.1">
+<h3><span class="header-section-number">5.5.1</span> ARIMA Manual<a href="análisis-de-estacionariedad.html#arima-manual" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>Vamos a realizar varios modelos ARIMA teniendo como precedente que según
+el análisis anterior de diferencias(1) , ACF(1) y el PACF(1) , por medio
+del analisis de AIC y BIC seleccionaremos el mejor modelo</p>
+<div class="sourceCode" id="cb48"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb48-1"><a href="análisis-de-estacionariedad.html#cb48-1" tabindex="-1"></a>arima1<span class="ot">&lt;-</span> <span class="fu">Arima</span>(serie_tiempo,<span class="at">order =</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>,<span class="dv">0</span>) )</span>
+<span id="cb48-2"><a href="análisis-de-estacionariedad.html#cb48-2" tabindex="-1"></a>arima2<span class="ot">&lt;-</span> <span class="fu">Arima</span>(serie_tiempo,<span class="at">order =</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>,<span class="dv">0</span>) )</span>
+<span id="cb48-3"><a href="análisis-de-estacionariedad.html#cb48-3" tabindex="-1"></a>arima3<span class="ot">&lt;-</span> <span class="fu">Arima</span>(serie_tiempo,<span class="at">order =</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">0</span>,<span class="dv">0</span>) )</span>
+<span id="cb48-4"><a href="análisis-de-estacionariedad.html#cb48-4" tabindex="-1"></a>arima4<span class="ot">&lt;-</span> <span class="fu">Arima</span>(serie_tiempo,<span class="at">order =</span><span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">1</span>) )</span>
+<span id="cb48-5"><a href="análisis-de-estacionariedad.html#cb48-5" tabindex="-1"></a>arima5<span class="ot">&lt;-</span> <span class="fu">Arima</span>(serie_tiempo,<span class="at">order =</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>,<span class="dv">1</span>) )</span>
+<span id="cb48-6"><a href="análisis-de-estacionariedad.html#cb48-6" tabindex="-1"></a>arima6<span class="ot">&lt;-</span> <span class="fu">Arima</span>(serie_tiempo,<span class="at">order =</span><span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">0</span>) )</span>
+<span id="cb48-7"><a href="análisis-de-estacionariedad.html#cb48-7" tabindex="-1"></a>arima7<span class="ot">&lt;-</span> <span class="fu">Arima</span>(serie_tiempo,<span class="at">order =</span><span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">1</span>,<span class="dv">0</span>) )</span>
+<span id="cb48-8"><a href="análisis-de-estacionariedad.html#cb48-8" tabindex="-1"></a>arima8<span class="ot">&lt;-</span> <span class="fu">Arima</span>(serie_tiempo,<span class="at">order =</span><span class="fu">c</span>(<span class="dv">3</span>,<span class="dv">2</span>,<span class="dv">2</span>) )</span>
+<span id="cb48-9"><a href="análisis-de-estacionariedad.html#cb48-9" tabindex="-1"></a>arima9<span class="ot">&lt;-</span> <span class="fu">Arima</span>(serie_tiempo,<span class="at">order =</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>) )</span>
+<span id="cb48-10"><a href="análisis-de-estacionariedad.html#cb48-10" tabindex="-1"></a>arima10<span class="ot">&lt;-</span> <span class="fu">Arima</span>(serie_tiempo,<span class="at">order =</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">2</span>) )</span>
+<span id="cb48-11"><a href="análisis-de-estacionariedad.html#cb48-11" tabindex="-1"></a>arima11<span class="ot">&lt;-</span> <span class="fu">Arima</span>(serie_tiempo,<span class="at">order =</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">3</span>) )</span>
+<span id="cb48-12"><a href="análisis-de-estacionariedad.html#cb48-12" tabindex="-1"></a>arima12<span class="ot">&lt;-</span> <span class="fu">Arima</span>(serie_tiempo,<span class="at">order =</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>,<span class="dv">2</span>) )</span>
+<span id="cb48-13"><a href="análisis-de-estacionariedad.html#cb48-13" tabindex="-1"></a>arima13<span class="ot">&lt;-</span> <span class="fu">Arima</span>(serie_tiempo,<span class="at">order =</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">0</span>))</span>
+<span id="cb48-14"><a href="análisis-de-estacionariedad.html#cb48-14" tabindex="-1"></a><span class="fu">AIC</span>(arima1,arima2,arima3,arima4,arima5,arima6,arima7,arima8,arima9,arima10,arima11,arima12,arima13)</span></code></pre></div>
+<pre><code>## Warning in AIC.default(arima1, arima2, arima3, arima4, arima5, arima6, arima7,
+## : models are not all fitted to the same number of observations</code></pre>
+<pre><code>##         df      AIC
+## arima1   1 14399.05
+## arima2   1 14399.05
+## arima3   3 14363.19
+## arima4   4 14054.97
+## arima5   2 13907.89
+## arima6   3 14724.66
+## arima7   3 14055.92
+## arima8   6 13907.07
+## arima9   3 13902.82
+## arima10  4 13904.77
+## arima11  5 13906.24
+## arima12  3 13903.05
+## arima13  2 14148.26</code></pre>
+<div class="sourceCode" id="cb51"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb51-1"><a href="análisis-de-estacionariedad.html#cb51-1" tabindex="-1"></a><span class="fu">BIC</span>(arima1,arima2,arima3,arima4,arima5,arima6,arima7,arima8,arima9,arima10,arima11,arima12,arima13)</span></code></pre></div>
+<pre><code>## Warning in BIC.default(arima1, arima2, arima3, arima4, arima5, arima6, arima7,
+## : models are not all fitted to the same number of observations</code></pre>
+<pre><code>##         df      BIC
+## arima1   1 14404.11
+## arima2   1 14404.11
+## arima3   3 14378.34
+## arima4   4 14075.17
+## arima5   2 13917.99
+## arima6   3 14739.81
+## arima7   3 14071.08
+## arima8   6 13937.37
+## arima9   3 13917.97
+## arima10  4 13924.98
+## arima11  5 13931.50
+## arima12  3 13918.20
+## arima13  2 14158.36</code></pre>
+<p>Realizando varios modelos encontramos que el modelo “arima9” es el mejor
+con <strong>AR(1), DIFF(1) y MA(1)</strong> ,ya que al verificar AIC y BIC nos pueden
+definir que tan bien se ajusta el modelo alos datos ,y la otra evalua su
+complejidad, entre mas sencillo el modelo mejor, ya que entre mas
+parametros puede ocasionar más sobreajuste.</p>
+<p>El arima indicaria lo siguiente: <strong>AR:</strong>Se necesita un componentes
+AR(1), lo que indica que los datos pasados tienen efecto sobre los
+valores futuros **Diferenciación*: Se necesita una (1) diferenciación
+para hacer la serie estacionaria . Esta fue la observación realizada
+anteriormente con una diferencia a la serie original <strong>Media Móvil</strong>:
+Indica que con (1) media móvil seria suficiente, ya que maneja la
+influencia de error de predicción de penúltimo periodo</p>
+<p><strong>Diagnóstico del Modelo</strong></p>
+<div class="sourceCode" id="cb54"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb54-1"><a href="análisis-de-estacionariedad.html#cb54-1" tabindex="-1"></a><span class="fu">tsdiag</span>(arima9)</span></code></pre></div>
+<p><img src="Series-de-Tiempo_files/figure-html/tsdiagarima9-1.png" width="672" /></p>
+<p><strong>Residuos estandar</strong>: Se pueden ver los residuos distribuidos
+aleatoriamente alrededor de cero , con algunos outlier <strong>Residuos ACF</strong>
+: Todas las autocorrelaciones estan dentro de la banda de confianza , lo
+que significa que no hay autocorrelación de residuos, es decir que esta
+capturando bien la serie temporal <strong>P values de Ljung-Box</strong>: Los valores
+estan por encima de la línea de significancia , lo que indica que los
+residuos no tienen autocorrelación, por lo tanto el modelo es adecuado</p>
+<p><strong>Prueba de Lgung-Box</strong></p>
+<div class="sourceCode" id="cb55"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb55-1"><a href="análisis-de-estacionariedad.html#cb55-1" tabindex="-1"></a><span class="fu">Box.test</span>(<span class="fu">residuals</span>(arima9),<span class="at">type =</span><span class="st">&quot;Ljung-Box&quot;</span>)</span></code></pre></div>
+<pre><code>## 
+##  Box-Ljung test
+## 
+## data:  residuals(arima9)
+## X-squared = 0.0035411, df = 1, p-value = 0.9525</code></pre>
+<p>Prueba de Lgun Box la Hipótesis nos sirve para saber si hay Ruido Blanco
+,si el valor(0.9525) es mayor a (0.5), entonces si hay Ruido Blanco, por
+lo cual se ajusta bien el modelo</p>
+<p><strong>Validación de residuos</strong></p>
+<p>En este gráfico podemos observar que la media es igual a cero</p>
+<div class="sourceCode" id="cb57"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb57-1"><a href="análisis-de-estacionariedad.html#cb57-1" tabindex="-1"></a>error<span class="ot">=</span><span class="fu">residuals</span>(arima9)</span>
+<span id="cb57-2"><a href="análisis-de-estacionariedad.html#cb57-2" tabindex="-1"></a><span class="fu">plot</span> (error)</span></code></pre></div>
+<p><img src="Series-de-Tiempo_files/figure-html/error%20arima9-1.png" width="672" /></p>
+<p><strong>Pronóstico</strong></p>
+<div class="sourceCode" id="cb58"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb58-1"><a href="análisis-de-estacionariedad.html#cb58-1" tabindex="-1"></a>pronostico_arima9 <span class="ot">&lt;-</span> <span class="fu">forecast</span>(arima9 ,<span class="at">level=</span><span class="fu">c</span>(<span class="dv">95</span>),<span class="at">h=</span><span class="dv">50</span>)</span>
+<span id="cb58-2"><a href="análisis-de-estacionariedad.html#cb58-2" tabindex="-1"></a>pronostico_arima9</span></code></pre></div>
+<pre><code>##           Point Forecast    Lo 95    Hi 95
+## 2024.1644       875.1025 679.6017 1070.603
+## 2024.1671       881.6557 679.3318 1083.980
+## 2024.1699       882.3089 676.4831 1088.135
+## 2024.1726       882.3741 673.3576 1091.390
+## 2024.1753       882.3806 670.2458 1094.515
+## 2024.1781       882.3812 667.1758 1097.587
+## 2024.1808       882.3813 664.1485 1100.614
+## 2024.1836       882.3813 661.1627 1103.600
+## 2024.1863       882.3813 658.2166 1106.546
+## 2024.1890       882.3813 655.3088 1109.454
+## 2024.1918       882.3813 652.4377 1112.325
+## 2024.1945       882.3813 649.6020 1115.161
+## 2024.1973       882.3813 646.8005 1117.962
+## 2024.2000       882.3813 644.0319 1120.731
+## 2024.2027       882.3813 641.2950 1123.468
+## 2024.2055       882.3813 638.5889 1126.174
+## 2024.2082       882.3813 635.9125 1128.850
+## 2024.2110       882.3813 633.2649 1131.498
+## 2024.2137       882.3813 630.6451 1134.117
+## 2024.2164       882.3813 628.0523 1136.710
+## 2024.2192       882.3813 625.4856 1139.277
+## 2024.2219       882.3813 622.9444 1141.818
+## 2024.2247       882.3813 620.4278 1144.335
+## 2024.2274       882.3813 617.9351 1146.827
+## 2024.2301       882.3813 615.4658 1149.297
+## 2024.2329       882.3813 613.0190 1151.744
+## 2024.2356       882.3813 610.5943 1154.168
+## 2024.2384       882.3813 608.1910 1156.572
+## 2024.2411       882.3813 605.8086 1158.954
+## 2024.2438       882.3813 603.4466 1161.316
+## 2024.2466       882.3813 601.1044 1163.658
+## 2024.2493       882.3813 598.7815 1165.981
+## 2024.2521       882.3813 596.4775 1168.285
+## 2024.2548       882.3813 594.1920 1170.571
+## 2024.2575       882.3813 591.9244 1172.838
+## 2024.2603       882.3813 589.6744 1175.088
+## 2024.2630       882.3813 587.4415 1177.321
+## 2024.2658       882.3813 585.2254 1179.537
+## 2024.2685       882.3813 583.0257 1181.737
+## 2024.2712       882.3813 580.8421 1183.920
+## 2024.2740       882.3813 578.6742 1186.088
+## 2024.2767       882.3813 576.5216 1188.241
+## 2024.2795       882.3813 574.3841 1190.378
+## 2024.2822       882.3813 572.2613 1192.501
+## 2024.2849       882.3813 570.1530 1194.610
+## 2024.2877       882.3813 568.0587 1196.704
+## 2024.2904       882.3813 565.9784 1198.784
+## 2024.2932       882.3813 563.9116 1200.851
+## 2024.2959       882.3813 561.8582 1202.904
+## 2024.2986       882.3813 559.8178 1204.945</code></pre>
+<p>Como podemos ver que el valor a partir del índice 2024.1808 se comporta
+constante con el valor de (882.3)</p>
+<div class="sourceCode" id="cb60"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb60-1"><a href="análisis-de-estacionariedad.html#cb60-1" tabindex="-1"></a><span class="fu">plot</span>(pronostico_arima9)</span></code></pre></div>
+<p><img src="Series-de-Tiempo_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
+</div>
+<div id="arima-con-drift" class="section level3 hasAnchor" number="5.5.2">
+<h3><span class="header-section-number">5.5.2</span> ARIMA con Drift<a href="análisis-de-estacionariedad.html#arima-con-drift" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>Incluimos al modelo de ARIMA el parámetro Drift el cual es la inclusión
+de una constante que representa una tendencia lineal en la serie
+temporal después de la diferenciación. Al incluirlo , el modelo puedo
+capturar esa tendencia residual mejorando la precisión del modelo</p>
+<div class="sourceCode" id="cb61"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb61-1"><a href="análisis-de-estacionariedad.html#cb61-1" tabindex="-1"></a>modelo_arima_drift <span class="ot">&lt;-</span> <span class="fu">Arima</span>(serie_tiempo, <span class="at">order=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>), <span class="at">include.drift=</span><span class="cn">TRUE</span>)</span>
+<span id="cb61-2"><a href="análisis-de-estacionariedad.html#cb61-2" tabindex="-1"></a><span class="fu">summary</span>(modelo_arima_drift)</span></code></pre></div>
+<pre><code>## Series: serie_tiempo 
+## ARIMA(1,1,1) with drift 
+## 
+## Coefficients:
+##          ar1      ma1   drift
+##       0.1007  -0.8348  0.4408
+## s.e.  0.0374   0.0217  0.5412
+## 
+## sigma^2 = 9952:  log likelihood = -6948.08
+## AIC=13904.16   AICc=13904.2   BIC=13924.37
+## 
+## Training set error measures:
+##                      ME     RMSE      MAE        MPE     MAPE      MASE
+## Training set 0.03036668 99.58887 49.69831 -0.6577668 5.776874 0.1651458
+##                      ACF1
+## Training set -0.001224591</code></pre>
+<div class="sourceCode" id="cb63"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb63-1"><a href="análisis-de-estacionariedad.html#cb63-1" tabindex="-1"></a>modelo_arima_drift</span></code></pre></div>
+<pre><code>## Series: serie_tiempo 
+## ARIMA(1,1,1) with drift 
+## 
+## Coefficients:
+##          ar1      ma1   drift
+##       0.1007  -0.8348  0.4408
+## s.e.  0.0374   0.0217  0.5412
+## 
+## sigma^2 = 9952:  log likelihood = -6948.08
+## AIC=13904.16   AICc=13904.2   BIC=13924.37</code></pre>
+<p><strong>Diagnostico del modelo</strong></p>
+<div class="sourceCode" id="cb65"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb65-1"><a href="análisis-de-estacionariedad.html#cb65-1" tabindex="-1"></a><span class="fu">tsdiag</span>(modelo_arima_drift)</span></code></pre></div>
+<p><img src="Series-de-Tiempo_files/figure-html/drift-1.png" width="672" /></p>
+<p><strong>Residuos estandar</strong>: Se pueden ver los residuos distribuidos
+aleatoriamente alrededor de cero , con algunos outlier <strong>Residuos ACF</strong>
+: Todas las autocorrelaciones estan dentro de la banda de confianza , lo
+que significa que no hay autocorrelación de residuos, es decir que esta
+capturando bien la serie temporal <strong>P values de Ljung-Box</strong>: Los valores
+estan por encima de la línea de significancia , lo que indica que los
+residuos no tienen autocorrelación, por lo tanto el modelo es adecuado</p>
+<p><strong>Prueba de Lgung-Box</strong></p>
+<div class="sourceCode" id="cb66"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb66-1"><a href="análisis-de-estacionariedad.html#cb66-1" tabindex="-1"></a><span class="fu">Box.test</span>(<span class="fu">residuals</span>(modelo_arima_drift),<span class="at">type =</span><span class="st">&quot;Ljung-Box&quot;</span>)</span></code></pre></div>
+<pre><code>## 
+##  Box-Ljung test
+## 
+## data:  residuals(modelo_arima_drift)
+## X-squared = 0.0017366, df = 1, p-value = 0.9668</code></pre>
+<p>Prueba de Lgun Box la Hipótesis nos sirve para saber si hay Ruido Blanco
+,si el valor(0.9668) es mayor a (0.5), entonces si hay Ruido Blanco, por
+lo cual se ajusta bien el modelo</p>
+<p><strong>Validación de residuos</strong></p>
+<p>En este gráfico podemos observar que la media es igual a cero</p>
+<div class="sourceCode" id="cb68"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb68-1"><a href="análisis-de-estacionariedad.html#cb68-1" tabindex="-1"></a>error<span class="ot">=</span><span class="fu">residuals</span>(modelo_arima_drift)</span>
+<span id="cb68-2"><a href="análisis-de-estacionariedad.html#cb68-2" tabindex="-1"></a><span class="fu">plot</span> (error)</span></code></pre></div>
+<p><img src="Series-de-Tiempo_files/figure-html/error_arimad-1.png" width="672" /></p>
+<p><strong>Pronóstico</strong></p>
+<div class="sourceCode" id="cb69"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb69-1"><a href="análisis-de-estacionariedad.html#cb69-1" tabindex="-1"></a><span class="co"># Pronóstico utilizando el modelo ARIMA con drift</span></span>
+<span id="cb69-2"><a href="análisis-de-estacionariedad.html#cb69-2" tabindex="-1"></a>pronostico_arima_drift <span class="ot">&lt;-</span> <span class="fu">forecast</span>(modelo_arima_drift, <span class="at">h=</span><span class="dv">150</span>)</span>
+<span id="cb69-3"><a href="análisis-de-estacionariedad.html#cb69-3" tabindex="-1"></a>pronostico_arima_drift</span></code></pre></div>
+<pre><code>##           Point Forecast    Lo 80    Hi 80    Lo 95    Hi 95
+## 2024.1644       877.8586 750.0088 1005.708 682.3291 1073.388
+## 2024.1671       885.1545 752.8600 1017.449 682.8276 1087.481
+## 2024.1699       886.2857 751.7325 1020.839 680.5043 1092.067
+## 2024.1726       886.7960 750.1890 1023.403 677.8737 1095.718
+## 2024.1753       887.2438 748.6298 1025.858 675.2519 1099.236
+## 2024.1781       887.6853 747.0944 1028.276 672.6701 1102.700
+## 2024.1808       888.1261 745.5860 1030.666 670.1299 1106.122
+## 2024.1836       888.5669 744.1039 1033.030 667.6298 1109.504
+## 2024.1863       889.0076 742.6470 1035.368 665.1684 1112.847
+## 2024.1890       889.4484 741.2144 1037.682 662.7441 1116.153
+## 2024.1918       889.8891 739.8052 1039.973 660.3556 1119.423
+## 2024.1945       890.3299 738.4186 1042.241 658.0015 1122.658
+## 2024.1973       890.7707 737.0536 1044.488 655.6807 1125.861
+## 2024.2000       891.2114 735.7096 1046.713 653.3919 1129.031
+## 2024.2027       891.6522 734.3859 1048.919 651.1341 1132.170
+## 2024.2055       892.0930 733.0817 1051.104 648.9062 1135.280
+## 2024.2082       892.5337 731.7965 1053.271 646.7074 1138.360
+## 2024.2110       892.9745 730.5296 1055.419 644.5365 1141.412
+## 2024.2137       893.4153 729.2805 1057.550 642.3928 1144.438
+## 2024.2164       893.8560 728.0486 1059.663 640.2755 1147.437
+## 2024.2192       894.2968 726.8334 1061.760 638.1837 1150.410
+## 2024.2219       894.7375 725.6345 1063.841 636.1167 1153.358
+## 2024.2247       895.1783 724.4512 1065.905 634.0738 1156.283
+## 2024.2274       895.6191 723.2833 1067.955 632.0543 1159.184
+## 2024.2301       896.0598 722.1303 1069.989 630.0575 1162.062
+## 2024.2329       896.5006 720.9917 1072.009 628.0829 1164.918
+## 2024.2356       896.9414 719.8672 1074.015 626.1299 1167.753
+## 2024.2384       897.3821 718.7565 1076.008 624.1978 1170.566
+## 2024.2411       897.8229 717.6591 1077.987 622.2861 1173.360
+## 2024.2438       898.2637 716.5747 1079.953 620.3943 1176.133
+## 2024.2466       898.7044 715.5030 1081.906 618.5220 1178.887
+## 2024.2493       899.1452 714.4437 1083.847 616.6686 1181.622
+## 2024.2521       899.5859 713.3965 1085.775 614.8337 1184.338
+## 2024.2548       900.0267 712.3610 1087.692 613.0168 1187.037
+## 2024.2575       900.4675 711.3371 1089.598 611.2176 1189.717
+## 2024.2603       900.9082 710.3245 1091.492 609.4356 1192.381
+## 2024.2630       901.3490 709.3229 1093.375 607.6704 1195.028
+## 2024.2658       901.7898 708.3320 1095.248 605.9216 1197.658
+## 2024.2685       902.2305 707.3516 1097.109 604.1889 1200.272
+## 2024.2712       902.6713 706.3815 1098.961 602.4720 1202.871
+## 2024.2740       903.1120 705.4215 1100.803 600.7704 1205.454
+## 2024.2767       903.5528 704.4713 1102.634 599.0840 1208.022
+## 2024.2795       903.9936 703.5308 1104.456 597.4123 1210.575
+## 2024.2822       904.4343 702.5998 1106.269 595.7550 1213.114
+## 2024.2849       904.8751 701.6780 1108.072 594.1119 1215.638
+## 2024.2877       905.3159 700.7653 1109.866 592.4827 1218.149
+## 2024.2904       905.7566 699.8614 1111.652 590.8671 1220.646
+## 2024.2932       906.1974 698.9663 1113.428 589.2648 1223.130
+## 2024.2959       906.6382 698.0798 1115.197 587.6757 1225.601
+## 2024.2986       907.0789 697.2017 1116.956 586.0993 1228.058
+## 2024.3014       907.5197 696.3317 1118.708 584.5356 1230.504
+## 2024.3041       907.9604 695.4699 1120.451 582.9842 1232.937
+## 2024.3068       908.4012 694.6160 1122.186 581.4450 1235.357
+## 2024.3096       908.8420 693.7699 1123.914 579.9177 1237.766
+## 2024.3123       909.2827 692.9315 1125.634 578.4021 1240.163
+## 2024.3151       909.7235 692.1006 1127.346 576.8979 1242.549
+## 2024.3178       910.1643 691.2770 1129.051 575.4051 1244.923
+## 2024.3205       910.6050 690.4608 1130.749 573.9234 1247.287
+## 2024.3233       911.0458 689.6516 1132.440 572.4526 1249.639
+## 2024.3260       911.4865 688.8495 1134.124 570.9926 1251.981
+## 2024.3288       911.9273 688.0543 1135.800 569.5430 1254.312
+## 2024.3315       912.3681 687.2658 1137.470 568.1039 1256.632
+## 2024.3342       912.8088 686.4841 1139.134 566.6750 1258.943
+## 2024.3370       913.2496 685.7089 1140.790 565.2561 1261.243
+## 2024.3397       913.6904 684.9402 1142.441 563.8471 1263.534
+## 2024.3425       914.1311 684.1778 1144.084 562.4479 1265.814
+## 2024.3452       914.5719 683.4217 1145.722 561.0582 1268.086
+## 2024.3479       915.0127 682.6718 1147.354 559.6779 1270.347
+## 2024.3507       915.4534 681.9279 1148.979 558.3070 1272.600
+## 2024.3534       915.8942 681.1900 1150.598 556.9451 1274.843
+## 2024.3562       916.3349 680.4580 1152.212 555.5923 1277.078
+## 2024.3589       916.7757 679.7318 1153.820 554.2484 1279.303
+## 2024.3616       917.2165 679.0113 1155.422 552.9132 1281.520
+## 2024.3644       917.6572 678.2965 1157.018 551.5866 1283.728
+## 2024.3671       918.0980 677.5872 1158.609 550.2685 1285.928
+## 2024.3699       918.5388 676.8834 1160.194 548.9587 1288.119
+## 2024.3726       918.9795 676.1850 1161.774 547.6573 1290.302
+## 2024.3753       919.4203 675.4919 1163.349 546.3639 1292.477
+## 2024.3781       919.8610 674.8040 1164.918 545.0786 1294.643
+## 2024.3808       920.3018 674.1213 1166.482 543.8012 1296.802
+## 2024.3836       920.7426 673.4437 1168.041 542.5316 1298.954
+## 2024.3863       921.1833 672.7712 1169.595 541.2697 1301.097
+## 2024.3890       921.6241 672.1036 1171.145 540.0154 1303.233
+## 2024.3918       922.0649 671.4409 1172.689 538.7686 1305.361
+## 2024.3945       922.5056 670.7831 1174.228 537.5292 1307.482
+## 2024.3973       922.9464 670.1300 1175.763 536.2971 1309.596
+## 2024.4000       923.3872 669.4817 1177.293 535.0722 1311.702
+## 2024.4027       923.8279 668.8380 1178.818 533.8545 1313.801
+## 2024.4055       924.2687 668.1989 1180.338 532.6437 1315.894
+## 2024.4082       924.7094 667.5643 1181.855 531.4399 1317.979
+## 2024.4110       925.1502 666.9342 1183.366 530.2429 1320.058
+## 2024.4137       925.5910 666.3085 1184.873 529.0527 1322.129
+## 2024.4164       926.0317 665.6872 1186.376 527.8692 1324.194
+## 2024.4192       926.4725 665.0702 1187.875 526.6922 1326.253
+## 2024.4219       926.9133 664.4575 1189.369 525.5218 1328.305
+## 2024.4247       927.3540 663.8490 1190.859 524.3578 1330.350
+## 2024.4274       927.7948 663.2446 1192.345 523.2002 1332.389
+## 2024.4301       928.2355 662.6444 1193.827 522.0489 1334.422
+## 2024.4329       928.6763 662.0482 1195.304 520.9038 1336.449
+## 2024.4356       929.1171 661.4561 1196.778 519.7649 1338.469
+## 2024.4384       929.5578 660.8679 1198.248 518.6320 1340.484
+## 2024.4411       929.9986 660.2836 1199.714 517.5051 1342.492
+## 2024.4438       930.4394 659.7032 1201.176 516.3842 1344.495
+## 2024.4466       930.8801 659.1267 1202.634 515.2691 1346.491
+## 2024.4493       931.3209 658.5539 1204.088 514.1598 1348.482
+## 2024.4521       931.7617 657.9849 1205.538 513.0563 1350.467
+## 2024.4548       932.2024 657.4196 1206.985 511.9584 1352.446
+## 2024.4575       932.6432 656.8580 1208.428 510.8662 1354.420
+## 2024.4603       933.0839 656.3000 1209.868 509.7795 1356.388
+## 2024.4630       933.5247 655.7456 1211.304 508.6983 1358.351
+## 2024.4658       933.9655 655.1948 1212.736 507.6225 1360.308
+## 2024.4685       934.4062 654.6475 1214.165 506.5521 1362.260
+## 2024.4712       934.8470 654.1036 1215.590 505.4870 1364.207
+## 2024.4740       935.2878 653.5632 1217.012 504.4272 1366.148
+## 2024.4767       935.7285 653.0262 1218.431 503.3726 1368.084
+## 2024.4795       936.1693 652.4926 1219.846 502.3232 1370.015
+## 2024.4822       936.6100 651.9623 1221.258 501.2788 1371.941
+## 2024.4849       937.0508 651.4353 1222.666 500.2395 1373.862
+## 2024.4877       937.4916 650.9115 1224.072 499.2052 1375.778
+## 2024.4904       937.9323 650.3910 1225.474 498.1759 1377.689
+## 2024.4932       938.3731 649.8737 1226.872 497.1514 1379.595
+## 2024.4959       938.8139 649.3596 1228.268 496.1318 1381.496
+## 2024.4986       939.2546 648.8486 1229.661 495.1170 1383.392
+## 2024.5014       939.6954 648.3408 1231.050 494.1069 1385.284
+## 2024.5041       940.1362 647.8360 1232.436 493.1016 1387.171
+## 2024.5068       940.5769 647.3342 1233.820 492.1009 1389.053
+## 2024.5096       941.0177 646.8355 1235.200 491.1049 1390.930
+## 2024.5123       941.4584 646.3398 1236.577 490.1134 1392.804
+## 2024.5151       941.8992 645.8470 1237.951 489.1264 1394.672
+## 2024.5178       942.3400 645.3572 1239.323 488.1440 1396.536
+## 2024.5205       942.7807 644.8702 1240.691 487.1659 1398.396
+## 2024.5233       943.2215 644.3862 1242.057 486.1923 1400.251
+## 2024.5260       943.6623 643.9050 1243.420 485.2231 1402.101
+## 2024.5288       944.1030 643.4266 1244.779 484.2581 1403.948
+## 2024.5315       944.5438 642.9510 1246.137 483.2975 1405.790
+## 2024.5342       944.9845 642.4782 1247.491 482.3411 1407.628
+## 2024.5370       945.4253 642.0082 1248.842 481.3889 1409.462
+## 2024.5397       945.8661 641.5409 1250.191 480.4409 1411.291
+## 2024.5425       946.3068 641.0763 1251.537 479.4970 1413.117
+## 2024.5452       946.7476 640.6143 1252.881 478.5572 1414.938
+## 2024.5479       947.1884 640.1550 1254.222 477.6214 1416.755
+## 2024.5507       947.6291 639.6984 1255.560 476.6897 1418.569
+## 2024.5534       948.0699 639.2443 1256.895 475.7620 1420.378
+## 2024.5562       948.5107 638.7929 1258.228 474.8382 1422.183
+## 2024.5589       948.9514 638.3440 1259.559 473.9183 1423.984
+## 2024.5616       949.3922 637.8976 1260.887 473.0024 1425.782
+## 2024.5644       949.8329 637.4538 1262.212 472.0903 1427.576
+## 2024.5671       950.2737 637.0124 1263.535 471.1820 1429.365
+## 2024.5699       950.7145 636.5736 1264.855 470.2774 1431.151
+## 2024.5726       951.1552 636.1372 1266.173 469.3767 1432.934</code></pre>
+<div class="sourceCode" id="cb71"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb71-1"><a href="análisis-de-estacionariedad.html#cb71-1" tabindex="-1"></a><span class="fu">plot</span>(pronostico_arima_drift)</span></code></pre></div>
+<p><img src="Series-de-Tiempo_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
+<p>Podemos ver como en los puntos de Predicción ya no tiene una tendencia
+lineal,ya los valores presentan una tendencia</p>
+</div>
+<div id="autoarima" class="section level3 hasAnchor" number="5.5.3">
+<h3><span class="header-section-number">5.5.3</span> AUTOARIMA<a href="análisis-de-estacionariedad.html#autoarima" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>El AUTOARIMA utilizavarios modelos y selecciona los mejores AIC/BIC
+buscando el mejor modelo que ajuste los datos y la el mas simple
+utilizando la menor cantidad de parámetros</p>
+<div class="sourceCode" id="cb72"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb72-1"><a href="análisis-de-estacionariedad.html#cb72-1" tabindex="-1"></a>modelo<span class="ot">&lt;-</span><span class="fu">auto.arima</span>(serie_tiempo)</span>
+<span id="cb72-2"><a href="análisis-de-estacionariedad.html#cb72-2" tabindex="-1"></a>modelo</span></code></pre></div>
+<pre><code>## Series: serie_tiempo 
+## ARIMA(0,1,2) 
+## 
+## Coefficients:
+##           ma1      ma2
+##       -0.7356  -0.0767
+## s.e.   0.0289   0.0292
+## 
+## sigma^2 = 9951:  log likelihood = -6948.52
+## AIC=13903.05   AICc=13903.07   BIC=13918.2</code></pre>
+<p>El resultado de AUTOARIMA sugiere un modelo (0,1,2).</p>
+<p><strong>AR:</strong>No hay componentes AR lo que indica que los datos pasados no
+tienen efecto sobre los valores futuros **Diferenciación*: Se
+necesita una diferenciación para hacer la serie estacionaria . Esta fue
+la observación realizada anteriormente con una diferencia a la serie
+original <strong>Media Móvil</strong>: Indica que con 2 medias moviles seria
+suficiene, ya que maneja la influencia de error de predicción de
+penúltimo periodo, esta elección tambien es dado porque el valor del
+error(-0.0767) es menor respecto al periodo anterior (-0.7636)</p>
+<p><strong>Diagnóstico del Modelo</strong></p>
+<div class="sourceCode" id="cb74"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb74-1"><a href="análisis-de-estacionariedad.html#cb74-1" tabindex="-1"></a><span class="fu">tsdiag</span>(modelo)</span></code></pre></div>
+<p><img src="Series-de-Tiempo_files/figure-html/tsdiag-1.png" width="672" /></p>
+<p><strong>Residuos estandar</strong> se pueden ver los residuso distribuidos
+aleatoriamente alrededor de cero , con algunos outlier <strong>Residuos ACF</strong>
+: Todas las autocorrelaciones estan dentro de la banda de confianza ,
+loq ue significa que no hay autocorrelación de residuos, lo que sugiere
+que esta capturando bien la serie temporal <strong>P values de Ljung-Box</strong>:
+Los valores estan po rencima de la linea de significancia , lo que
+indica que los residuos no tienen autocorrelación por lo tanto el modelo
+es adecuado</p>
+<p><strong>Prueba de Lgung-Box</strong></p>
+<div class="sourceCode" id="cb75"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb75-1"><a href="análisis-de-estacionariedad.html#cb75-1" tabindex="-1"></a><span class="fu">Box.test</span>(<span class="fu">residuals</span>(modelo),<span class="at">type =</span><span class="st">&quot;Ljung-Box&quot;</span>)</span></code></pre></div>
+<pre><code>## 
+##  Box-Ljung test
+## 
+## data:  residuals(modelo)
+## X-squared = 0.00010835, df = 1, p-value = 0.9917</code></pre>
+<p>Prueba de Lgun Box la Hipótesis nos sirve para saber si hay Ruido Blanco
+, en este caso el valor (0.9917) es mayor a (0.5) por lo cual si hay
+Ruido Blanco y se ajusta bien el modelo</p>
+<p><strong>Validación de residuos</strong></p>
+<p>En este gráfico podemos observar que la media es igual a cero</p>
+<div class="sourceCode" id="cb77"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb77-1"><a href="análisis-de-estacionariedad.html#cb77-1" tabindex="-1"></a>error<span class="ot">=</span><span class="fu">residuals</span>(modelo)</span>
+<span id="cb77-2"><a href="análisis-de-estacionariedad.html#cb77-2" tabindex="-1"></a><span class="fu">plot</span> (error)</span></code></pre></div>
+<p><img src="Series-de-Tiempo_files/figure-html/error-1.png" width="672" /></p>
+<p><strong>Pronóstico</strong></p>
+<div class="sourceCode" id="cb78"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb78-1"><a href="análisis-de-estacionariedad.html#cb78-1" tabindex="-1"></a>pronostico <span class="ot">&lt;-</span> forecast<span class="sc">::</span><span class="fu">forecast</span>(modelo ,<span class="at">h=</span><span class="dv">100</span>)</span>
+<span id="cb78-2"><a href="análisis-de-estacionariedad.html#cb78-2" tabindex="-1"></a>pronostico</span></code></pre></div>
+<pre><code>##           Point Forecast    Lo 80    Hi 80    Lo 95    Hi 95
+## 2024.1644       875.3455 747.5016 1003.189 679.8252 1070.866
+## 2024.1671       881.2991 749.0635 1013.535 679.0622 1083.536
+## 2024.1699       881.2991 746.9052 1015.693 675.7613 1086.837
+## 2024.1726       881.2991 744.7809 1017.817 672.5125 1090.086
+## 2024.1753       881.2991 742.6892 1019.909 669.3136 1093.285
+## 2024.1781       881.2991 740.6286 1021.970 666.1621 1096.436
+## 2024.1808       881.2991 738.5978 1024.001 663.0562 1099.542
+## 2024.1836       881.2991 736.5954 1026.003 659.9939 1102.604
+## 2024.1863       881.2991 734.6204 1027.978 656.9734 1105.625
+## 2024.1890       881.2991 732.6716 1029.927 653.9930 1108.605
+## 2024.1918       881.2991 730.7481 1031.850 651.0512 1111.547
+## 2024.1945       881.2991 728.8488 1033.749 648.1465 1114.452
+## 2024.1973       881.2991 726.9729 1035.625 645.2775 1117.321
+## 2024.2000       881.2991 725.1195 1037.479 642.4430 1120.155
+## 2024.2027       881.2991 723.2879 1039.310 639.6418 1122.957
+## 2024.2055       881.2991 721.4772 1041.121 636.8726 1125.726
+## 2024.2082       881.2991 719.6869 1042.911 634.1345 1128.464
+## 2024.2110       881.2991 717.9161 1044.682 631.4264 1131.172
+## 2024.2137       881.2991 716.1644 1046.434 628.7473 1133.851
+## 2024.2164       881.2991 714.4310 1048.167 626.0963 1136.502
+## 2024.2192       881.2991 712.7154 1049.883 623.4726 1139.126
+## 2024.2219       881.2991 711.0172 1051.581 620.8753 1141.723
+## 2024.2247       881.2991 709.3357 1053.263 618.3037 1144.295
+## 2024.2274       881.2991 707.6705 1054.928 615.7570 1146.841
+## 2024.2301       881.2991 706.0211 1056.577 613.2344 1149.364
+## 2024.2329       881.2991 704.3870 1058.211 610.7354 1151.863
+## 2024.2356       881.2991 702.7680 1059.830 608.2593 1154.339
+## 2024.2384       881.2991 701.1635 1061.435 605.8054 1156.793
+## 2024.2411       881.2991 699.5731 1063.025 603.3732 1159.225
+## 2024.2438       881.2991 697.9966 1064.602 600.9621 1161.636
+## 2024.2466       881.2991 696.4335 1066.165 598.5715 1164.027
+## 2024.2493       881.2991 694.8835 1067.715 596.2010 1166.397
+## 2024.2521       881.2991 693.3463 1069.252 593.8500 1168.748
+## 2024.2548       881.2991 691.8215 1070.777 591.5181 1171.080
+## 2024.2575       881.2991 690.3089 1072.289 589.2048 1173.393
+## 2024.2603       881.2991 688.8083 1073.790 586.9097 1175.689
+## 2024.2630       881.2991 687.3192 1075.279 584.6324 1177.966
+## 2024.2658       881.2991 685.8415 1076.757 582.3724 1180.226
+## 2024.2685       881.2991 684.3748 1078.223 580.1294 1182.469
+## 2024.2712       881.2991 682.9190 1079.679 577.9029 1184.695
+## 2024.2740       881.2991 681.4738 1081.124 575.6927 1186.906
+## 2024.2767       881.2991 680.0390 1082.559 573.4983 1189.100
+## 2024.2795       881.2991 678.6143 1083.984 571.3195 1191.279
+## 2024.2822       881.2991 677.1996 1085.399 569.1558 1193.442
+## 2024.2849       881.2991 675.7946 1086.804 567.0071 1195.591
+## 2024.2877       881.2991 674.3992 1088.199 564.8730 1197.725
+## 2024.2904       881.2991 673.0131 1089.585 562.7531 1199.845
+## 2024.2932       881.2991 671.6362 1090.962 560.6473 1201.951
+## 2024.2959       881.2991 670.2682 1092.330 558.5552 1204.043
+## 2024.2986       881.2991 668.9091 1093.689 556.4766 1206.122
+## 2024.3014       881.2991 667.5586 1095.040 554.4112 1208.187
+## 2024.3041       881.2991 666.2166 1096.382 552.3588 1210.239
+## 2024.3068       881.2991 664.8829 1097.715 550.3191 1212.279
+## 2024.3096       881.2991 663.5574 1099.041 548.2919 1214.306
+## 2024.3123       881.2991 662.2399 1100.358 546.2769 1216.321
+## 2024.3151       881.2991 660.9303 1101.668 544.2740 1218.324
+## 2024.3178       881.2991 659.6284 1102.970 542.2830 1220.315
+## 2024.3205       881.2991 658.3341 1104.264 540.3035 1222.295
+## 2024.3233       881.2991 657.0473 1105.551 538.3355 1224.263
+## 2024.3260       881.2991 655.7678 1106.830 536.3788 1226.220
+## 2024.3288       881.2991 654.4956 1108.103 534.4330 1228.165
+## 2024.3315       881.2991 653.2304 1109.368 532.4981 1230.100
+## 2024.3342       881.2991 651.9722 1110.626 530.5739 1232.024
+## 2024.3370       881.2991 650.7209 1111.877 528.6602 1233.938
+## 2024.3397       881.2991 649.4764 1113.122 526.7568 1235.841
+## 2024.3425       881.2991 648.2385 1114.360 524.8636 1237.735
+## 2024.3452       881.2991 647.0071 1115.591 522.9804 1239.618
+## 2024.3479       881.2991 645.7821 1116.816 521.1070 1241.491
+## 2024.3507       881.2991 644.5636 1118.035 519.2433 1243.355
+## 2024.3534       881.2991 643.3512 1119.247 517.3892 1245.209
+## 2024.3562       881.2991 642.1450 1120.453 515.5444 1247.054
+## 2024.3589       881.2991 640.9448 1121.653 513.7089 1248.889
+## 2024.3616       881.2991 639.7506 1122.848 511.8826 1250.716
+## 2024.3644       881.2991 638.5623 1124.036 510.0652 1252.533
+## 2024.3671       881.2991 637.3798 1125.218 508.2567 1254.342
+## 2024.3699       881.2991 636.2030 1126.395 506.4569 1256.141
+## 2024.3726       881.2991 635.0318 1127.567 504.6657 1257.933
+## 2024.3753       881.2991 633.8661 1128.732 502.8830 1259.715
+## 2024.3781       881.2991 632.7059 1129.892 501.1086 1261.490
+## 2024.3808       881.2991 631.5511 1131.047 499.3425 1263.256
+## 2024.3836       881.2991 630.4016 1132.197 497.5845 1265.014
+## 2024.3863       881.2991 629.2574 1133.341 495.8346 1266.764
+## 2024.3890       881.2991 628.1183 1134.480 494.0925 1268.506
+## 2024.3918       881.2991 626.9844 1135.614 492.3582 1270.240
+## 2024.3945       881.2991 625.8554 1136.743 490.6317 1271.967
+## 2024.3973       881.2991 624.7314 1137.867 488.9127 1273.686
+## 2024.4000       881.2991 623.6124 1138.986 487.2013 1275.397
+## 2024.4027       881.2991 622.4982 1140.100 485.4972 1277.101
+## 2024.4055       881.2991 621.3887 1141.210 483.8004 1278.798
+## 2024.4082       881.2991 620.2840 1142.314 482.1109 1280.487
+## 2024.4110       881.2991 619.1839 1143.414 480.4285 1282.170
+## 2024.4137       881.2991 618.0884 1144.510 478.7531 1283.845
+## 2024.4164       881.2991 616.9975 1145.601 477.0846 1285.514
+## 2024.4192       881.2991 615.9110 1146.687 475.4230 1287.175
+## 2024.4219       881.2991 614.8290 1147.769 473.7682 1288.830
+## 2024.4247       881.2991 613.7513 1148.847 472.1201 1290.478
+## 2024.4274       881.2991 612.6780 1149.920 470.4786 1292.120
+## 2024.4301       881.2991 611.6090 1150.989 468.8436 1293.755
+## 2024.4329       881.2991 610.5441 1152.054 467.2151 1295.383
+## 2024.4356       881.2991 609.4835 1153.115 465.5929 1297.005</code></pre>
+<p>En el caso del pronóstico el modelo empiza a mostrar linealidad apartir
+del indice (2024.1671)</p>
+</div>
+<div id="autoarima-con-drift" class="section level3 hasAnchor" number="5.5.4">
+<h3><span class="header-section-number">5.5.4</span> AUTOARIMA con Drift<a href="análisis-de-estacionariedad.html#autoarima-con-drift" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>AL igual que el ARIMA anterior vamos a incluir el parametro Drift para
+ajustar la linealidad</p>
+<div class="sourceCode" id="cb80"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb80-1"><a href="análisis-de-estacionariedad.html#cb80-1" tabindex="-1"></a><span class="fu">library</span>(forecast)</span>
+<span id="cb80-2"><a href="análisis-de-estacionariedad.html#cb80-2" tabindex="-1"></a>modelo_auto_con_drift <span class="ot">&lt;-</span> <span class="fu">auto.arima</span>(serie_tiempo, <span class="at">d=</span><span class="dv">1</span>, <span class="at">D=</span><span class="dv">0</span>, <span class="at">seasonal=</span><span class="cn">FALSE</span>, <span class="at">allowdrift=</span><span class="cn">TRUE</span>)</span>
+<span id="cb80-3"><a href="análisis-de-estacionariedad.html#cb80-3" tabindex="-1"></a><span class="fu">summary</span>(modelo_auto_con_drift)</span></code></pre></div>
+<pre><code>## Series: serie_tiempo 
+## ARIMA(0,1,2) 
+## 
+## Coefficients:
+##           ma1      ma2
+##       -0.7356  -0.0767
+## s.e.   0.0289   0.0292
+## 
+## sigma^2 = 9951:  log likelihood = -6948.52
+## AIC=13903.05   AICc=13903.07   BIC=13918.2
+## 
+## Training set error measures:
+##                   ME     RMSE      MAE        MPE     MAPE      MASE
+## Training set 2.35706 99.62746 49.73352 -0.3545638 5.770395 0.1652628
+##                      ACF1
+## Training set 0.0003058902</code></pre>
+<div class="sourceCode" id="cb82"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb82-1"><a href="análisis-de-estacionariedad.html#cb82-1" tabindex="-1"></a>modelo_auto_con_drift</span></code></pre></div>
+<pre><code>## Series: serie_tiempo 
+## ARIMA(0,1,2) 
+## 
+## Coefficients:
+##           ma1      ma2
+##       -0.7356  -0.0767
+## s.e.   0.0289   0.0292
+## 
+## sigma^2 = 9951:  log likelihood = -6948.52
+## AIC=13903.05   AICc=13903.07   BIC=13918.2</code></pre>
+<p>Se puede ver en el pronóstico una linealidad de (881.29) a parir del
+segundo Indice</p>
+<div class="sourceCode" id="cb84"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb84-1"><a href="análisis-de-estacionariedad.html#cb84-1" tabindex="-1"></a>pronostico_auto_con_drift <span class="ot">&lt;-</span> <span class="fu">forecast</span>(modelo_auto_con_drift, <span class="at">h=</span><span class="dv">150</span>) </span>
+<span id="cb84-2"><a href="análisis-de-estacionariedad.html#cb84-2" tabindex="-1"></a>pronostico_auto_con_drift</span></code></pre></div>
+<pre><code>##           Point Forecast    Lo 80    Hi 80    Lo 95    Hi 95
+## 2024.1644       875.3455 747.5016 1003.189 679.8252 1070.866
+## 2024.1671       881.2991 749.0635 1013.535 679.0622 1083.536
+## 2024.1699       881.2991 746.9052 1015.693 675.7613 1086.837
+## 2024.1726       881.2991 744.7809 1017.817 672.5125 1090.086
+## 2024.1753       881.2991 742.6892 1019.909 669.3136 1093.285
+## 2024.1781       881.2991 740.6286 1021.970 666.1621 1096.436
+## 2024.1808       881.2991 738.5978 1024.001 663.0562 1099.542
+## 2024.1836       881.2991 736.5954 1026.003 659.9939 1102.604
+## 2024.1863       881.2991 734.6204 1027.978 656.9734 1105.625
+## 2024.1890       881.2991 732.6716 1029.927 653.9930 1108.605
+## 2024.1918       881.2991 730.7481 1031.850 651.0512 1111.547
+## 2024.1945       881.2991 728.8488 1033.749 648.1465 1114.452
+## 2024.1973       881.2991 726.9729 1035.625 645.2775 1117.321
+## 2024.2000       881.2991 725.1195 1037.479 642.4430 1120.155
+## 2024.2027       881.2991 723.2879 1039.310 639.6418 1122.957
+## 2024.2055       881.2991 721.4772 1041.121 636.8726 1125.726
+## 2024.2082       881.2991 719.6869 1042.911 634.1345 1128.464
+## 2024.2110       881.2991 717.9161 1044.682 631.4264 1131.172
+## 2024.2137       881.2991 716.1644 1046.434 628.7473 1133.851
+## 2024.2164       881.2991 714.4310 1048.167 626.0963 1136.502
+## 2024.2192       881.2991 712.7154 1049.883 623.4726 1139.126
+## 2024.2219       881.2991 711.0172 1051.581 620.8753 1141.723
+## 2024.2247       881.2991 709.3357 1053.263 618.3037 1144.295
+## 2024.2274       881.2991 707.6705 1054.928 615.7570 1146.841
+## 2024.2301       881.2991 706.0211 1056.577 613.2344 1149.364
+## 2024.2329       881.2991 704.3870 1058.211 610.7354 1151.863
+## 2024.2356       881.2991 702.7680 1059.830 608.2593 1154.339
+## 2024.2384       881.2991 701.1635 1061.435 605.8054 1156.793
+## 2024.2411       881.2991 699.5731 1063.025 603.3732 1159.225
+## 2024.2438       881.2991 697.9966 1064.602 600.9621 1161.636
+## 2024.2466       881.2991 696.4335 1066.165 598.5715 1164.027
+## 2024.2493       881.2991 694.8835 1067.715 596.2010 1166.397
+## 2024.2521       881.2991 693.3463 1069.252 593.8500 1168.748
+## 2024.2548       881.2991 691.8215 1070.777 591.5181 1171.080
+## 2024.2575       881.2991 690.3089 1072.289 589.2048 1173.393
+## 2024.2603       881.2991 688.8083 1073.790 586.9097 1175.689
+## 2024.2630       881.2991 687.3192 1075.279 584.6324 1177.966
+## 2024.2658       881.2991 685.8415 1076.757 582.3724 1180.226
+## 2024.2685       881.2991 684.3748 1078.223 580.1294 1182.469
+## 2024.2712       881.2991 682.9190 1079.679 577.9029 1184.695
+## 2024.2740       881.2991 681.4738 1081.124 575.6927 1186.906
+## 2024.2767       881.2991 680.0390 1082.559 573.4983 1189.100
+## 2024.2795       881.2991 678.6143 1083.984 571.3195 1191.279
+## 2024.2822       881.2991 677.1996 1085.399 569.1558 1193.442
+## 2024.2849       881.2991 675.7946 1086.804 567.0071 1195.591
+## 2024.2877       881.2991 674.3992 1088.199 564.8730 1197.725
+## 2024.2904       881.2991 673.0131 1089.585 562.7531 1199.845
+## 2024.2932       881.2991 671.6362 1090.962 560.6473 1201.951
+## 2024.2959       881.2991 670.2682 1092.330 558.5552 1204.043
+## 2024.2986       881.2991 668.9091 1093.689 556.4766 1206.122
+## 2024.3014       881.2991 667.5586 1095.040 554.4112 1208.187
+## 2024.3041       881.2991 666.2166 1096.382 552.3588 1210.239
+## 2024.3068       881.2991 664.8829 1097.715 550.3191 1212.279
+## 2024.3096       881.2991 663.5574 1099.041 548.2919 1214.306
+## 2024.3123       881.2991 662.2399 1100.358 546.2769 1216.321
+## 2024.3151       881.2991 660.9303 1101.668 544.2740 1218.324
+## 2024.3178       881.2991 659.6284 1102.970 542.2830 1220.315
+## 2024.3205       881.2991 658.3341 1104.264 540.3035 1222.295
+## 2024.3233       881.2991 657.0473 1105.551 538.3355 1224.263
+## 2024.3260       881.2991 655.7678 1106.830 536.3788 1226.220
+## 2024.3288       881.2991 654.4956 1108.103 534.4330 1228.165
+## 2024.3315       881.2991 653.2304 1109.368 532.4981 1230.100
+## 2024.3342       881.2991 651.9722 1110.626 530.5739 1232.024
+## 2024.3370       881.2991 650.7209 1111.877 528.6602 1233.938
+## 2024.3397       881.2991 649.4764 1113.122 526.7568 1235.841
+## 2024.3425       881.2991 648.2385 1114.360 524.8636 1237.735
+## 2024.3452       881.2991 647.0071 1115.591 522.9804 1239.618
+## 2024.3479       881.2991 645.7821 1116.816 521.1070 1241.491
+## 2024.3507       881.2991 644.5636 1118.035 519.2433 1243.355
+## 2024.3534       881.2991 643.3512 1119.247 517.3892 1245.209
+## 2024.3562       881.2991 642.1450 1120.453 515.5444 1247.054
+## 2024.3589       881.2991 640.9448 1121.653 513.7089 1248.889
+## 2024.3616       881.2991 639.7506 1122.848 511.8826 1250.716
+## 2024.3644       881.2991 638.5623 1124.036 510.0652 1252.533
+## 2024.3671       881.2991 637.3798 1125.218 508.2567 1254.342
+## 2024.3699       881.2991 636.2030 1126.395 506.4569 1256.141
+## 2024.3726       881.2991 635.0318 1127.567 504.6657 1257.933
+## 2024.3753       881.2991 633.8661 1128.732 502.8830 1259.715
+## 2024.3781       881.2991 632.7059 1129.892 501.1086 1261.490
+## 2024.3808       881.2991 631.5511 1131.047 499.3425 1263.256
+## 2024.3836       881.2991 630.4016 1132.197 497.5845 1265.014
+## 2024.3863       881.2991 629.2574 1133.341 495.8346 1266.764
+## 2024.3890       881.2991 628.1183 1134.480 494.0925 1268.506
+## 2024.3918       881.2991 626.9844 1135.614 492.3582 1270.240
+## 2024.3945       881.2991 625.8554 1136.743 490.6317 1271.967
+## 2024.3973       881.2991 624.7314 1137.867 488.9127 1273.686
+## 2024.4000       881.2991 623.6124 1138.986 487.2013 1275.397
+## 2024.4027       881.2991 622.4982 1140.100 485.4972 1277.101
+## 2024.4055       881.2991 621.3887 1141.210 483.8004 1278.798
+## 2024.4082       881.2991 620.2840 1142.314 482.1109 1280.487
+## 2024.4110       881.2991 619.1839 1143.414 480.4285 1282.170
+## 2024.4137       881.2991 618.0884 1144.510 478.7531 1283.845
+## 2024.4164       881.2991 616.9975 1145.601 477.0846 1285.514
+## 2024.4192       881.2991 615.9110 1146.687 475.4230 1287.175
+## 2024.4219       881.2991 614.8290 1147.769 473.7682 1288.830
+## 2024.4247       881.2991 613.7513 1148.847 472.1201 1290.478
+## 2024.4274       881.2991 612.6780 1149.920 470.4786 1292.120
+## 2024.4301       881.2991 611.6090 1150.989 468.8436 1293.755
+## 2024.4329       881.2991 610.5441 1152.054 467.2151 1295.383
+## 2024.4356       881.2991 609.4835 1153.115 465.5929 1297.005
+## 2024.4384       881.2991 608.4269 1154.171 463.9771 1298.621
+## 2024.4411       881.2991 607.3744 1155.224 462.3675 1300.231
+## 2024.4438       881.2991 606.3260 1156.272 460.7640 1301.834
+## 2024.4466       881.2991 605.2816 1157.317 459.1667 1303.432
+## 2024.4493       881.2991 604.2410 1158.357 457.5753 1305.023
+## 2024.4521       881.2991 603.2044 1159.394 455.9900 1306.608
+## 2024.4548       881.2991 602.1716 1160.427 454.4105 1308.188
+## 2024.4575       881.2991 601.1427 1161.456 452.8368 1309.761
+## 2024.4603       881.2991 600.1175 1162.481 451.2689 1311.329
+## 2024.4630       881.2991 599.0960 1163.502 449.7067 1312.892
+## 2024.4658       881.2991 598.0782 1164.520 448.1501 1314.448
+## 2024.4685       881.2991 597.0641 1165.534 446.5991 1315.999
+## 2024.4712       881.2991 596.0535 1166.545 445.0536 1317.545
+## 2024.4740       881.2991 595.0465 1167.552 443.5136 1319.085
+## 2024.4767       881.2991 594.0431 1168.555 441.9789 1320.619
+## 2024.4795       881.2991 593.0431 1169.555 440.4496 1322.149
+## 2024.4822       881.2991 592.0466 1170.552 438.9256 1323.673
+## 2024.4849       881.2991 591.0536 1171.545 437.4068 1325.191
+## 2024.4877       881.2991 590.0639 1172.534 435.8932 1326.705
+## 2024.4904       881.2991 589.0775 1173.521 434.3848 1328.214
+## 2024.4932       881.2991 588.0945 1174.504 432.8814 1329.717
+## 2024.4959       881.2991 587.1148 1175.484 431.3830 1331.215
+## 2024.4986       881.2991 586.1383 1176.460 429.8896 1332.709
+## 2024.5014       881.2991 585.1650 1177.433 428.4011 1334.197
+## 2024.5041       881.2991 584.1950 1178.403 426.9175 1335.681
+## 2024.5068       881.2991 583.2281 1179.370 425.4387 1337.160
+## 2024.5096       881.2991 582.2643 1180.334 423.9648 1338.634
+## 2024.5123       881.2991 581.3036 1181.295 422.4955 1340.103
+## 2024.5151       881.2991 580.3459 1182.252 421.0309 1341.567
+## 2024.5178       881.2991 579.3914 1183.207 419.5710 1343.027
+## 2024.5205       881.2991 578.4398 1184.159 418.1157 1344.483
+## 2024.5233       881.2991 577.4912 1185.107 416.6649 1345.933
+## 2024.5260       881.2991 576.5455 1186.053 415.2187 1347.380
+## 2024.5288       881.2991 575.6028 1186.995 413.7769 1348.821
+## 2024.5315       881.2991 574.6630 1187.935 412.3396 1350.259
+## 2024.5342       881.2991 573.7260 1188.872 410.9067 1351.692
+## 2024.5370       881.2991 572.7919 1189.806 409.4781 1353.120
+## 2024.5397       881.2991 571.8606 1190.738 408.0538 1354.545
+## 2024.5425       881.2991 570.9321 1191.666 406.6338 1355.965
+## 2024.5452       881.2991 570.0064 1192.592 405.2180 1357.380
+## 2024.5479       881.2991 569.0834 1193.515 403.8064 1358.792
+## 2024.5507       881.2991 568.1632 1194.435 402.3990 1360.199
+## 2024.5534       881.2991 567.2456 1195.353 400.9957 1361.603
+## 2024.5562       881.2991 566.3307 1196.268 399.5965 1363.002
+## 2024.5589       881.2991 565.4185 1197.180 398.2014 1364.397
+## 2024.5616       881.2991 564.5089 1198.089 396.8102 1365.788
+## 2024.5644       881.2991 563.6019 1198.996 395.4231 1367.175
+## 2024.5671       881.2991 562.6974 1199.901 394.0399 1368.558
+## 2024.5699       881.2991 561.7956 1200.803 392.6606 1369.938
+## 2024.5726       881.2991 560.8963 1201.702 391.2852 1371.313</code></pre>
+<div class="sourceCode" id="cb86"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb86-1"><a href="análisis-de-estacionariedad.html#cb86-1" tabindex="-1"></a><span class="fu">plot</span>(pronostico_auto_con_drift)</span></code></pre></div>
+<p><img src="Series-de-Tiempo_files/figure-html/unnamed-chunk-22-1.png" width="672" /></p>
+</div>
+<div id="conclusión" class="section level3 hasAnchor" number="5.5.5">
+<h3><span class="header-section-number">5.5.5</span> Conclusión<a href="análisis-de-estacionariedad.html#conclusión" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>El modelo AUTOARIMA puede no capturar todas las caraterisitcas de una
+serie temporal , como una tendencia residual . Por otro lado al incluir
+el parámetro <strong>drift¨</strong> en el modelo ARIMA(1,1,1) ayudo a capturar esta
+tendencia mejorando el ajuste y la interpretación del modelo</p>
 
+</div>
 </div>
 </div>
             </section>
